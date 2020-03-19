@@ -11,7 +11,7 @@ module.exports = {
       //cron_restart
       env: {
         NODE_ENV: 'development',
-        port : 7001
+        port : 4001
       }
     },
     ]
