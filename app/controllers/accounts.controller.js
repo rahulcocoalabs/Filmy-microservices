@@ -162,21 +162,24 @@ function accountsController(methods, options) {
             sgMail.send(mailOptions, (error, result) => {
               if (error) {
                 return res.status(500).send({
+                  success: 0,
                   message: error.message
                 });
               }
               res.send({
-                status: 1,
+                success: 1,
                 statusCode: 200,
                 message: 'A reset email has been sent to ' + user.email + '.'
               });
             })
           })
           .catch(err => res.status(500).send({
+            success: 0,
             message: err.message
           }));
       })
       .catch(err => res.status(500).send({
+        success: 0,
         message: err.message
       }));
   };
@@ -215,6 +218,7 @@ function accountsController(methods, options) {
       .then((user) => {
         if (!user) {
           return res.status(401).json({
+            success: 0,
             message: 'Password reset token is invalid or has expired.'
           });
         }
@@ -228,7 +232,10 @@ function accountsController(methods, options) {
         var filter = {
           resetPasswordToken: req.params.token
         };
-        Users.findOneAndUpdate(filter, update).then(user => {
+        Users.findOneAndUpdate(filter, update, {
+            new: true,
+            useFindAndModify: false
+        }).then(user => {
           // send email
           const mailOptions = {
             to: user.email,
@@ -240,14 +247,17 @@ function accountsController(methods, options) {
 
           sgMail.send(mailOptions, (error, result) => {
             if (error) return res.status(500).json({
+              success: 0,
               message: error.message
             });
 
             res.status(200).json({
+              success: 1,
               message: 'Your password has been updated.'
             });
           });
         }).catch(err => res.status(500).json({
+          success: 0,
           message: err.message
         }));
       });
