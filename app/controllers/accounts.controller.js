@@ -43,7 +43,7 @@ function accountsController(methods, options) {
       if (user) {
         return res.send({
           success: 0,
-          statusCode: 400,
+          statusCode: 401,
           message: 'User exists, try with another email id'
         })
       }
@@ -98,7 +98,7 @@ function accountsController(methods, options) {
       if (!data) {
         return res.send({
           success: 0,
-          statusCode: 400,
+          statusCode: 401,
           message: 'Incorrect credentials'
         })
       };
@@ -114,6 +114,7 @@ function accountsController(methods, options) {
       });
       res.send({
         success: 1,
+        statusCode: 200,
         token: token,
         userDetails: payload,
         message: 'Successfully logged in'
