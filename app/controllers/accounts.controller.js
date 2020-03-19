@@ -36,8 +36,7 @@ function accountsController(methods, options) {
       });
     };
     var findCriteria = {
-      email: email,
-      password: password
+      email: email
     };
     Users.findOne(findCriteria).then(user => {
       if (user) {
