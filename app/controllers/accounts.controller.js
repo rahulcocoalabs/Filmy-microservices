@@ -197,6 +197,8 @@ function accountsController(methods, options) {
             message: 'Password reset token is invalid or has expired.'
           });
         }
+        //Redirect user to form with the email address
+        // res.render('reset', {user});
         res.send({
           success: 1,
           statusCode: 200,
