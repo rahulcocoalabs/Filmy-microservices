@@ -1,4 +1,4 @@
 var server = require('./server.js'); 
-var routes = ['sample'];
-var serviceName = "samples";
+var routes = ['accounts'];
+var serviceName = "accounts";
 server.start(serviceName, routes);
