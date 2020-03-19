@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-
 const UserSchema = mongoose.Schema({
     userType: { type: mongoose.Schema.Types.ObjectId, ref: 'UserType'},
     fullName: String,
@@ -20,9 +19,13 @@ const UserSchema = mongoose.Schema({
     languagesKnown: Array,
     tagLine: String,
     skill: String,
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
     status: Number,
     tsCreatedAt: Number,
     tsModifiedAt: Number
 
 });
+
+
 module.exports = mongoose.model('User', UserSchema, 'Users');
