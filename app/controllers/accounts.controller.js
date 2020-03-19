@@ -67,7 +67,6 @@ function accountsController(methods, options) {
   };
 
   this.login = (req, res) => {
-    console.log('in login');
     var email = req.body.email;
     var password = req.body.password;
     if (!email || !password) {
