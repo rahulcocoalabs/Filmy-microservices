@@ -386,6 +386,41 @@ function accountsController(methods, options) {
         message: err.message
       })
     })
+  };
+
+  // **** Get profile ****
+  this.getProfile = (req, res) => {
+    var userData = req.identity.data;
+    var userId = userData.id;
+    var findCriteria = {
+      _id: userId
+    };
+    var queryProjection = {
+      fullName: 1,
+      gender: 1,
+      phone: 1,
+      image: 1,
+      profession: 1,
+      country: 1,
+      city: 1,
+      email: 1,
+      location: 1,
+      bio: 1,
+      dateOfBirth: 1,
+      height: 1,
+      weight: 1,
+      skills: 1,
+      languagesKnown: 1,
+      tagLine: 1,
+    };
+    Users.findOne(findCriteria, queryProjection).then(user => {
+      res.send({
+        success: 1,
+        statusCode: 200,
+        userData: user,
+        message: 'User data fetched successfully'
+      })
+    })
   }
 
   // **** Update Profile ***** Author: Shefin S
