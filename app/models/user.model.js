@@ -9,7 +9,6 @@ const UserSchema = mongoose.Schema({
     country: String,
     city: String,
     email: String,
-    profilePic: String,
     password: String,
     location: String,
     bio: String,
