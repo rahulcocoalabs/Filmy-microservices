@@ -113,6 +113,7 @@ function accountsController(methods, options) {
         dateOfBirth: null,
         height: null,
         weight: null,
+        tagLine: null,
         skills: [],
       };
       var token = jwt.sign({
