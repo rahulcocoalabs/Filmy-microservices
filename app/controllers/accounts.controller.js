@@ -106,7 +106,14 @@ function accountsController(methods, options) {
       var payload = {
         id: data._id,
         fullName: data.fullName,
-        email: data.email
+        email: data.email,
+        phone: null,
+        location: null,
+        bio: null,
+        dateOfBirth: null,
+        height: null,
+        weight: null,
+        skills: [],
       };
       var token = jwt.sign({
         data: payload,
