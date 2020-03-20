@@ -9,6 +9,8 @@ function accountsController(methods, options) {
   const crypto = require('crypto');
   const sgMail = require('@sendgrid/mail');
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+  // **** Signup **** Author: Shefin S
   this.register = (req, res) => {
     var fullName = req.body.fullName;
     var email = req.body.email;
@@ -69,6 +71,8 @@ function accountsController(methods, options) {
     })
 
   };
+
+  // **** Login **** Author: Shefin S
 
   this.login = (req, res) => {
     var email = req.body.email;
@@ -136,6 +140,8 @@ function accountsController(methods, options) {
     })
   };
 
+  // *** Send email to recover passsword **** Author: Shefin S
+
   this.recover = (req, res) => {
     var email = req.body.email;
     var findCriteria = {
@@ -198,6 +204,8 @@ function accountsController(methods, options) {
       }));
   };
 
+  // ****If the resetpassword token is correct then direct to the reset password page **** Author: Shefin S
+
   this.reset = (req, res) => {
     Users.findOne({
         resetPasswordToken: req.params.token,
@@ -224,7 +232,8 @@ function accountsController(methods, options) {
         message: err.message
       }));
   };
-
+  
+  // **** Reset password ****
   this.resetPassword = (req, res) => {
     Users.findOne({
         resetPasswordToken: req.params.token,
@@ -282,7 +291,7 @@ function accountsController(methods, options) {
       });
   };
 
-  // *** change password ***
+  // *** change password *** Author: Shefin S
 
   this.changePassword = async (req, res) => {
     var userData = req.identity.data;
@@ -377,10 +386,9 @@ function accountsController(methods, options) {
         message: err.message
       })
     })
-
-
   }
 
+  // **** Update Profile ***** Author: Shefin S
   this.updateProfile = (req, res) => {
     var userData = req.identity.data;
     var userId = userData.id;
@@ -465,7 +473,7 @@ function accountsController(methods, options) {
     });
   };
 
-  // **** Contact form enquiry ****
+  // **** Contact form enquiry **** Author: Shefin S
 
   this.contactUs = (req, res) => {
     var fullName = req.body.fullName;
