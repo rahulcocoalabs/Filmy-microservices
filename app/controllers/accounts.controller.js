@@ -232,7 +232,7 @@ function accountsController(methods, options) {
         message: err.message
       }));
   };
-  
+
   // **** Reset password ****
   this.resetPassword = (req, res) => {
     Users.findOne({
@@ -506,43 +506,43 @@ function accountsController(methods, options) {
       });
     };
 
-  const contactData = new Contacts({
-    email: email,
-    fullName: fullName,
-    message: message
-  });
-  contactData.save().then(data => {
-    const mailOptions = {
-      to: 'shefinshafi54@gmail.com',
-      from: 'Filmy@example.com',
-      subject: "Contact form data",
-      text: `Hi Filmy, \n 
+    const contactData = new Contacts({
+      email: email,
+      fullName: fullName,
+      message: message
+    });
+    contactData.save().then(data => {
+      const mailOptions = {
+        to: 'shefinshafi54@gmail.com',
+        from: 'Filmy@example.com',
+        subject: "Contact form data",
+        text: `Hi Filmy, \n 
              Customer Name: ${fullName}, \n
              Email: ${email}, \n
              Message: ${message}`
-    };
+      };
 
-    sgMail.send(mailOptions, (error, result) => {
-      if (error) {
-        return res.status(500).send({
-          success: 0,
-          message: error.message
+      sgMail.send(mailOptions, (error, result) => {
+        if (error) {
+          return res.status(500).send({
+            success: 0,
+            message: error.message
+          });
+        }
+        res.send({
+          success: 1,
+          statusCode: 200,
+          message: 'Your query has been sent to ' + email + '.'
         });
-      }
-      res.send({
-        success: 1,
-        statusCode: 200,
-        message: 'Your query has been sent to ' + email + '.'
-      });
-    }).catch(err => {
-      res.send({
-        success: 0,
-        message: err.message
+      }).catch(err => {
+        res.send({
+          success: 0,
+          message: err.message
+        })
       })
-    })
 
-  })
-}
+    })
+  }
 }
 
 module.exports = accountsController
