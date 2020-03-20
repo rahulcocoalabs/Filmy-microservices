@@ -276,6 +276,104 @@ function accountsController(methods, options) {
       });
   };
 
+  // *** change password ***
+
+  this.changePassword = async (req, res) => {
+    var userData = req.identity.data;
+    var userId = userData.id;
+    var email = req.body.email;
+    var currentPassword = req.body.currentPassword;
+    var newPassword = req.body.newPassword;
+    var confirmPassword = req.body.confirmPassword;
+    if (!email || !currentPassword || !newPassword || !confirmPassword) {
+      var errors = [];
+      if (!email) {
+        errors.push({
+          field: "email",
+          message: "Email cannot be empty"
+        });
+      };
+      if (!currentPassword) {
+        errors.push({
+          field: "currentPassword",
+          message: "Current password cannot be empty"
+        });
+      };
+      if (!newPassword) {
+        errors.push({
+          field: "newPassword",
+          message: "New password cannot be empty"
+        });
+      };
+      if (!confirmPassword) {
+        errors.push({
+          field: "confirmPassword",
+          message: "confirm password cannot be empty"
+        });
+      };
+      return res.send({
+        success: 0,
+        statusCode: 400,
+        errors: errors,
+      });
+    };
+
+    var checkMail = await Users.findOne({
+      _id: userId,
+      email: email
+    })
+    if (!checkMail) {
+      return res.send({
+        success: 0,
+        message: 'Please enter your registered mail id'
+      })
+    };
+    var currentPasswordCheckData = await Users.findOne({
+      _id: userId,
+      email: email
+    });
+    var currentPasswordCheck = currentPasswordCheckData.password;
+
+    if (currentPassword != currentPasswordCheck) {
+      return res.send({
+        success: 0,
+        message: 'Current Password is incorrect'
+      })
+    };
+
+    if (newPassword != confirmPassword) {
+      return res.send({
+        success: 0,
+        message: 'Both new password and retyped password should be same'
+      })
+    };
+
+    var filter = {
+      _id: userId,
+      email: email,
+      currentPassword: currentPassword
+    };
+
+    var update = {
+      password: newPassword
+    };
+
+    Users.update(filter, update).then(data => {
+      res.send({
+        success: 1,
+        statusCode: 200,
+        message: 'Password updated successfully'
+      })
+    }).catch(err => {
+      res.send({
+        success: 0,
+        message: err.message
+      })
+    })
+
+
+  }
+
   this.updateProfile = (req, res) => {
     var userData = req.identity.data;
     var userId = userData.id;
