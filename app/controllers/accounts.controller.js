@@ -96,8 +96,6 @@ function accountsController(methods, options) {
       password: password
     }
     Users.findOne(findCriteria).then(data => {
-      console.log(data);
-      console.log('data');
       if (!data) {
         return res.send({
           success: 0,
