@@ -380,7 +380,7 @@ function accountsController(methods, options) {
     })
   };
 
-  // **** Get profile ****
+  // **** Get profile **** Author: Shefin S
   this.getProfile = (req, res) => {
     var userData = req.identity.data;
     var userId = userData.id;
