@@ -96,6 +96,8 @@ function accountsController(methods, options) {
       password: password
     }
     Users.findOne(findCriteria).then(data => {
+      console.log(data);
+      console.log('data');
       if (!data) {
         return res.send({
           success: 0,
@@ -108,6 +110,7 @@ function accountsController(methods, options) {
         fullName: data.fullName,
         email: data.email,
         phone: null,
+        image: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
         location: null,
         bio: null,
         dateOfBirth: null,
@@ -243,8 +246,8 @@ function accountsController(methods, options) {
           resetPasswordToken: req.params.token
         };
         Users.findOneAndUpdate(filter, update, {
-            new: true,
-            useFindAndModify: false
+          new: true,
+          useFindAndModify: false
         }).then(user => {
           // send email
           const mailOptions = {
@@ -272,6 +275,89 @@ function accountsController(methods, options) {
         }));
       });
   };
+
+  this.updateProfile = (req, res) => {
+    var userData = req.identity.data;
+    var userId = userData.id;
+    var firstName = req.body.firstName;
+    var lastName = req.body.lastName;
+    var dateOfBirth = req.body.dateOfBirth;
+    var gender = req.body.gender;
+    var profession = req.body.profession;
+    var phone = req.body.phone;
+    var city = req.body.city;
+    var country = req.body.country;
+    var languagesKnown = req.body.languagesKnown;
+    var skills = req.body.skills;
+    var bio = req.body.bio;
+    var tagLine = req.body.tagLine;
+    if (!firstName && !lastName && !dateOfBirth && !gender && !profession && !phone && !city && !country && !languagesKnown && !skills && !bio && !tagLine) {
+      return res.send({
+        success: 0,
+        statusCode: 204,
+        message: 'Nothing to update'
+      })
+    }
+    var update = {};
+    if (firstName) {
+      update.fullName = firstName
+    };
+    if (lastName) {
+      update.fullName = lastName
+    };
+    if (firstName && lastName) {
+      update.fullName = firstName + ' ' + lastName
+    }
+    if (dateOfBirth) {
+      update.dateOfBirth = dateOfBirth
+    };
+    if (gender) {
+      update.gender = gender
+    };
+    if (profession) {
+      update.profession = profession
+    };
+    if (phone) {
+      update.phone = phone
+    };
+    if (city) {
+      update.city = city
+    };
+    if (country) {
+      update.country = country
+    };
+    if (languagesKnown) {
+      update.languagesKnown = languagesKnown
+    };
+    if (skills) {
+      update.skills = skills
+    };
+    if (bio) {
+      update.bio = bio
+    };
+    if (tagLine) {
+      update.tagLine = tagLine
+    };
+    var filter = {
+      _id: userId
+    };
+    Users.findOneAndUpdate(filter, update, {
+      new: true,
+      useFindAndModify: false
+    }).then(result => {
+      res.send({
+        success: 1,
+        statusCode: 200,
+        message: 'User data updated successfully'
+      })
+    }).catch(err => {
+      return res.send({
+        success: 0,
+        statusCode: 500,
+        message: err.message,
+      })
+    });
+  }
 
 }
 module.exports = accountsController

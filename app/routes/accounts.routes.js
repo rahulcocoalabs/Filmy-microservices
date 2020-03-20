@@ -5,6 +5,6 @@ module.exports = (app,methods,options) => {
     accounts.methods.post('/recover-password',accounts.recover, {auth:false});
     accounts.methods.get('/reset/:token',accounts.reset, {auth:false});
     accounts.methods.post('/reset-password/:token',accounts.resetPassword, {auth:false});
-    
+    accounts.methods.patch('/update-profile',accounts.updateProfile, {auth:true});
     
 }
