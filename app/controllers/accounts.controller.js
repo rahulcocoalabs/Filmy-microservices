@@ -114,15 +114,7 @@ function accountsController(methods, options) {
         id: data._id,
         fullName: data.fullName,
         email: data.email,
-        phone: null,
         image: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
-        location: null,
-        bio: null,
-        dateOfBirth: null,
-        height: null,
-        weight: null,
-        tagLine: null,
-        skills: [],
       };
       var token = jwt.sign({
         data: payload,
