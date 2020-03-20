@@ -7,5 +7,5 @@ module.exports = (app,methods,options) => {
     accounts.methods.post('/reset-password/:token',accounts.resetPassword, {auth:false});
     accounts.methods.patch('/change-password',accounts.changePassword, {auth:true});
     accounts.methods.patch('/update-profile',accounts.updateProfile, {auth:true});
-    
+    accounts.methods.post('/contact-us',accounts.contactUs, {auth:true});
 }

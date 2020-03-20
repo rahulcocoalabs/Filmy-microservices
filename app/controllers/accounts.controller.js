@@ -1,5 +1,6 @@
 function accountsController(methods, options) {
   var Users = require('../models/user.model.js');
+  var Contacts = require('../models/contactUs.model.js');
   var jwt = require('jsonwebtoken');
   var config = require('../../config/app.config.js');
   var paramsConfig = require('../../config/params.config');
@@ -39,7 +40,8 @@ function accountsController(methods, options) {
       });
     };
     var findCriteria = {
-      email: email
+      email: email,
+      status: 1
     };
     Users.findOne(findCriteria).then(user => {
       if (user) {
@@ -92,6 +94,7 @@ function accountsController(methods, options) {
       });
     };
     var findCriteria = {
+      status: 1,
       email: email,
       password: password
     }
@@ -136,7 +139,8 @@ function accountsController(methods, options) {
   this.recover = (req, res) => {
     var email = req.body.email;
     var findCriteria = {
-      email: email
+      email: email,
+      status: 1
     }
     Users.findOne(findCriteria).then(user => {
         if (!user) {
@@ -149,7 +153,8 @@ function accountsController(methods, options) {
         var resetPasswordToken = crypto.randomBytes(20).toString('hex');
         var resetPasswordExpires = Date.now() + 3600000; //expires in an hour
         var filter = {
-          email: email
+          email: email,
+          status: 1
         };
         var update = {
           resetPasswordToken: resetPasswordToken,
@@ -196,6 +201,7 @@ function accountsController(methods, options) {
   this.reset = (req, res) => {
     Users.findOne({
         resetPasswordToken: req.params.token,
+        status: 1,
         resetPasswordExpires: {
           $gt: Date.now()
         }
@@ -222,6 +228,7 @@ function accountsController(methods, options) {
   this.resetPassword = (req, res) => {
     Users.findOne({
         resetPasswordToken: req.params.token,
+        status: 1,
         resetPasswordExpires: {
           $gt: Date.now()
         }
@@ -241,7 +248,8 @@ function accountsController(methods, options) {
           resetPasswordExpires: undefined,
         };
         var filter = {
-          resetPasswordToken: req.params.token
+          resetPasswordToken: req.params.token,
+          status: 1
         };
         Users.findOneAndUpdate(filter, update, {
           new: true,
@@ -318,7 +326,8 @@ function accountsController(methods, options) {
 
     var checkMail = await Users.findOne({
       _id: userId,
-      email: email
+      email: email,
+      status: 1
     })
     if (!checkMail) {
       return res.send({
@@ -435,7 +444,8 @@ function accountsController(methods, options) {
       update.tagLine = tagLine
     };
     var filter = {
-      _id: userId
+      _id: userId,
+      status: 1
     };
     Users.findOneAndUpdate(filter, update, {
       new: true,
@@ -453,7 +463,78 @@ function accountsController(methods, options) {
         message: err.message,
       })
     });
-  }
+  };
 
+  // **** Contact form enquiry ****
+
+  this.contactUs = (req, res) => {
+    var fullName = req.body.fullName;
+    var email = req.body.email;
+    var message = req.body.message;
+    if (!email || !fullName || !message) {
+      var errors = [];
+      if (!email) {
+        errors.push({
+          field: "email",
+          message: "Email cannot be empty"
+        });
+      };
+      if (!fullName) {
+        errors.push({
+          field: "fullName",
+          message: "Full name cannot be empty"
+        });
+      };
+      if (!message) {
+        errors.push({
+          field: "message",
+          message: "Message cannot be empty"
+        });
+      };
+      return res.send({
+        success: 0,
+        statusCode: 400,
+        errors: errors,
+      });
+    };
+
+  const contactData = new Contacts({
+    email: email,
+    fullName: fullName,
+    message: message
+  });
+  contactData.save().then(data => {
+    const mailOptions = {
+      to: 'shefinshafi54@gmail.com',
+      from: 'Filmy@example.com',
+      subject: "Contact form data",
+      text: `Hi Filmy, \n 
+             Customer Name: ${fullName}, \n
+             Email: ${email}, \n
+             Message: ${message}`
+    };
+
+    sgMail.send(mailOptions, (error, result) => {
+      if (error) {
+        return res.status(500).send({
+          success: 0,
+          message: error.message
+        });
+      }
+      res.send({
+        success: 1,
+        statusCode: 200,
+        message: 'Your query has been sent to ' + email + '.'
+      });
+    }).catch(err => {
+      res.send({
+        success: 0,
+        message: err.message
+      })
+    })
+
+  })
 }
+}
+
 module.exports = accountsController
