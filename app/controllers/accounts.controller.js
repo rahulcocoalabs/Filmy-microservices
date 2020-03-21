@@ -9,7 +9,7 @@ function accountsController(methods, options) {
   const crypto = require('crypto');
   const sgMail = require('@sendgrid/mail');
   sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
+  
   // **** Signup **** Author: Shefin S
   this.register = (req, res) => {
     var fullName = req.body.fullName;
