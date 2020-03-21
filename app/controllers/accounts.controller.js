@@ -197,7 +197,7 @@ function accountsController(methods, options) {
             new: true,
             useFindAndModify: false
           }).then(user => {
-            let link = "http://" + req.headers.host + "/accounts/reset/" + user.resetPasswordToken;
+            let link = "http://" + req.headers.host + "/reset" + user.resetPasswordToken;
             const mailOptions = {
               to: user.email,
               from: 'Filmy@example.com',
@@ -247,13 +247,13 @@ function accountsController(methods, options) {
             message: 'Password reset token is invalid or has expired.'
           });
         }
-        //Redirect user to form with the email address
-        // res.render('reset', {user});
-        res.send({
-          success: 1,
-          statusCode: 200,
-          message: 'Reset token is valid and you can redirect to password reset page'
-        })
+        // Redirect user to form with the email address
+        res.render('http://localhost:4200/reset-password', {user});
+        // res.send({
+        //   success: 1,
+        //   statusCode: 200,
+        //   message: 'Reset token is valid and you can redirect to password reset page'
+        // })
       })
       .catch(err => res.status(500).json({
         message: err.message
