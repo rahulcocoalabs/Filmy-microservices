@@ -129,6 +129,20 @@ function accountsController(methods, options) {
         fullName: data.fullName,
         email: data.email,
         image: 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png',
+        gender: '',
+        phone: '',
+        image: '',
+        profession: '',
+        country: '',
+        city: '',
+        location: '',
+        bio: '',
+        dateOfBirth: '',
+        height: '',
+        weight: '',
+        skills: '',
+        languagesKnown: '',
+        tagLine: ''
       };
       var token = jwt.sign({
         data: payload,
