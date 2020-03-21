@@ -164,10 +164,16 @@ function accountsController(methods, options) {
 
   this.recover = (req, res) => {
     var email = req.body.email;
+    if(!email) {
+      return res.send({
+        success: 0,
+        message: 'Email is required'
+      })
+    }
     var findCriteria = {
       email: email,
       status: 1
-    }
+    };
     Users.findOne(findCriteria).then(user => {
         if (!user) {
           return res.send({
