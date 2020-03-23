@@ -4,10 +4,9 @@ function connectionsController(methods, options) {
     var Users = require('../models/user.model');
 
     this.updateConnection = async (req, res) => {
-        // var userData = req.identity.data;
-        // var userId = userData.id;
+        let userData = req.identity.data;
+        let userId = userData.id;
         // let senderUserId = '5e736a610c01be1e4540d9ff';
-        let senderUserId = '5e736a610c01be1e4540d9ff';
         let params = req.body;
         let receiverUserId = params.receiverUserId;
         let connectionStatus = params.connectionStatus;
