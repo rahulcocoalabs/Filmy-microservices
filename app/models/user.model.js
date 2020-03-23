@@ -18,7 +18,7 @@ const UserSchema = mongoose.Schema({
     skills: String,
     languagesKnown: String,
     tagLine: String,
-    followers: Array,
+    followers: [{type: mongoose.Schema.Types.ObjectId, ref: 'User'}],
     followings: Array,
     resetPasswordToken: String,
     resetPasswordExpires: Date,

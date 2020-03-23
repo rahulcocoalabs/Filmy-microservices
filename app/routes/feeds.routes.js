@@ -1,4 +1,7 @@
 module.exports = (app,methods,options) => {
-    const accounts = methods.loadController('feeds',options);
-    accounts.methods.post('/register',accounts.register, {auth:false});
+    const feeds = methods.loadController('feed',options);
+    feeds.methods.post('/create-feed',feeds.createFeed, {auth:true});
+    feeds.methods.get('/get-feed',feeds.getFeed, {auth:true});
+    feeds.methods.post('/add-comment',feeds.addComment, {auth:true});
+    feeds.methods.get('/get-comment/:postId',feeds.getComment, {auth:true});
 }

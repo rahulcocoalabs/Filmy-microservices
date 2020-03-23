@@ -1,4 +1,4 @@
-var commonStorePath = 'http://172.104.61.150/haritha-keralam/common/uploads/'
+var commonStorePath = 'http://172.104.61.150/learning/common/uploads'
 module.exports = {
   sms: {
     fromNo: "HARKLM",
@@ -16,5 +16,8 @@ module.exports = {
   },
   otp: {
     expirySeconds: 2 * 60
+  },
+  feeds: {
+    basePath: commonStorePath + '/images/books/categories/'
   }
 }
