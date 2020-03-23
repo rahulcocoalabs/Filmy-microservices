@@ -18,6 +18,8 @@ const UserSchema = mongoose.Schema({
     skills: String,
     languagesKnown: String,
     tagLine: String,
+    followers: Array,
+    followings: Array,
     resetPasswordToken: String,
     resetPasswordExpires: Date,
     status: Number,
