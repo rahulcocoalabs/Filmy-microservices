@@ -8,7 +8,7 @@ function accountsController(methods, options) {
   var moment = require('moment');
   const crypto = require('crypto');
   const sgMail = require('@sendgrid/mail');
-  var SENDGRID_APY_KEY = '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';
+  var SENDGRID_APY_KEY = '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';
   sgMail.setApiKey(SENDGRID_APY_KEY);
  
   // **** Signup **** Author: Shefin S
@@ -197,7 +197,8 @@ function accountsController(methods, options) {
             new: true,
             useFindAndModify: false
           }).then(user => {
-            let link = "http://" + req.headers.host + "/reset" + user.resetPasswordToken;
+            // http://localhost:7004/accounts/recover-password
+            let link = "http://" + req.headers.host + "/accounts/reset/" + user.resetPasswordToken;
             const mailOptions = {
               to: user.email,
               from: 'Filmy@example.com',
@@ -234,6 +235,7 @@ function accountsController(methods, options) {
   // ****If the resetpassword token is correct then direct to the reset password page **** Author: Shefin S
 
   this.reset = (req, res) => {
+    console.log('in recover');
     Users.findOne({
         resetPasswordToken: req.params.token,
         status: 1,
@@ -248,7 +250,7 @@ function accountsController(methods, options) {
           });
         }
         // Redirect user to form with the email address
-        res.render('http://localhost:4200/reset-password', {user});
+        res.render('reset-password', {user});
         // res.send({
         //   success: 1,
         //   statusCode: 200,
