@@ -395,15 +395,17 @@ function accountsController(methods, options) {
 
     var filter = {
       _id: userId,
-      email: email,
-      currentPassword: currentPassword
+      email: email
     };
 
     var update = {
       password: newPassword
     };
 
-    Users.update(filter, update).then(data => {
+    Users.findOneAndUpdate(filter, update, {
+      new: true,
+      useFindAndModify: false
+    }).then(data => {
       res.send({
         success: 1,
         statusCode: 200,
