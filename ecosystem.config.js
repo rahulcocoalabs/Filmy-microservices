@@ -16,7 +16,7 @@ module.exports = {
     },
     {
       name: 'Feeds Filmy Microservices',
-      script: 'accounts.service.js',
+      script: 'feeds.service.js',
       // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
       instances: 1,
       autorestart: true,
