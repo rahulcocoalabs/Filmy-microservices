@@ -5,7 +5,7 @@ function connectionsController(methods, options) {
 
     this.updateConnection = async (req, res) => {
         let userData = req.identity.data;
-        let userId = userData.id;
+        let senderUserId = userData.id;
         // let senderUserId = '5e736a610c01be1e4540d9ff';
         let params = req.body;
         let receiverUserId = params.receiverUserId;
