@@ -93,13 +93,19 @@ function connectionsController(methods, options) {
 
                     responseObj = {
                         message: "You unfollowed " + receiverData.fullName,
-                        status: 1
+                        success: 1
                     }
                     return res.send(responseObj);
                 }
             }
         } else {
+            responseObj = {
+                message: "Invalid connection status ",
+                success: 0,
+                statusCode: 401,
 
+            }
+            return res.send(responseObj);
         }
 
     }
