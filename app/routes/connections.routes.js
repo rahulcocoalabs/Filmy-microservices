@@ -1,6 +1,9 @@
-module.exports = (app,methods,options) => {
-    const connections = methods.loadController('connections',options);
-    // connections.methods.post('/send',requests.sendRequest, {auth:true});
-    connections.methods.post('/update-status',connections.updateConnection, {auth:true});
+const auth = require('../middleware/auth.js');
+
+
+module.exports = (app) => {
+    const connections = require('../controllers/connections.controller');
+
+    app.post('/connections/update-status',auth,connections.updateConnection);
   
 }

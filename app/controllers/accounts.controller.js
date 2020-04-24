@@ -1,4 +1,4 @@
-function accountsController(methods, options) {
+// function accountsController(methods, options) {
   var Users = require('../models/user.model.js');
   var Contacts = require('../models/contactUs.model.js');
   var jwt = require('jsonwebtoken');
@@ -9,10 +9,13 @@ function accountsController(methods, options) {
   const crypto = require('crypto');
   const sgMail = require('@sendgrid/mail');
   var SENDGRID_APY_KEY = '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';
+
+  var bcrypt = require('bcryptjs');
+  const salt = bcrypt.genSaltSync(10);
   sgMail.setApiKey(SENDGRID_APY_KEY);
  
   // **** Signup **** Author: Shefin S
-  this.register = (req, res) => {
+ exports.register = async (req, res) => {
     var fullName = req.body.fullName;
     var email = req.body.email;
     var password = req.body.password;
@@ -42,11 +45,21 @@ function accountsController(methods, options) {
         errors: errors,
       });
     };
+
+  
     var findCriteria = {
       email: email,
       status: 1
     };
-    Users.findOne(findCriteria).then(user => {
+    let user = await Users.findOne(findCriteria)
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+          message: 'Something went wrong while check user',
+          status: false,
+          error: error
+      })
+  })
       if (user) {
         return res.send({
           success: 0,
@@ -54,10 +67,12 @@ function accountsController(methods, options) {
           message: 'User exists, try with another email id'
         })
       }
+      const hash = bcrypt.hashSync(password, salt);
+
       const newRegistration = new Users({
         fullName: fullName,
         email: email,
-        password: password,
+        password: hash,
         gender: '',
         phone: '',
         image: '',
@@ -76,20 +91,21 @@ function accountsController(methods, options) {
         tsCreatedAt: Number(moment().unix()),
         tsModifiedAt: null
       });
+
       newRegistration.save().then(data => {
-        res.send({
+       return res.send({
           success: 1,
           statusCode: 200,
           message: 'User successfully registered'
         })
       })
-    })
+    
 
   };
 
   // **** Login **** Author: Shefin S
 
-  this.login = (req, res) => {
+ exports.login = async (req, res) => {
     var email = req.body.email;
     var password = req.body.password;
     if (!email || !password) {
@@ -114,10 +130,17 @@ function accountsController(methods, options) {
     };
     var findCriteria = {
       status: 1,
-      email: email,
-      password: password
+      email
     }
-    Users.findOne(findCriteria).then(data => {
+    let data = await Users.findOne(findCriteria)
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+          message: 'Something went wrong while check user',
+          status: false,
+          error: error
+      })
+  })
       if (!data) {
         return res.send({
           success: 0,
@@ -125,6 +148,9 @@ function accountsController(methods, options) {
           message: 'Incorrect credentials'
         })
       };
+      let matched = await bcrypt.compare(password, data.password);
+      if (matched) {
+
       var payload = {
         id: data._id,
         fullName: data.fullName,
@@ -150,6 +176,8 @@ function accountsController(methods, options) {
       }, JWT_KEY, {
         expiresIn: '10h'
       });
+      console.log("JWT_KEY : " + JWT_KEY ) ;
+
       res.send({
         success: 1,
         statusCode: 200,
@@ -157,13 +185,19 @@ function accountsController(methods, options) {
         userDetails: payload,
         message: 'Successfully logged in'
       })
+    }else{
+      return res.send({
+        success: 0,
+        statusCode: 401,
+        message: 'Unauthorized'
+      })
+    }
 
-    })
-  };
+    };
 
   // *** Send email to recover passsword **** Author: Shefin S
 
-  this.recover = (req, res) => {
+ exports.recover = (req, res) => {
     var email = req.body.email;
     if(!email) {
       return res.send({
@@ -234,7 +268,7 @@ function accountsController(methods, options) {
 
   // ****If the resetpassword token is correct then direct to the reset password page **** Author: Shefin S
 
-  this.reset = (req, res) => {
+ exports.reset = (req, res) => {
     console.log('in recover');
     Users.findOne({
         resetPasswordToken: req.params.token,
@@ -263,7 +297,7 @@ function accountsController(methods, options) {
   };
 
   // **** Reset password ****
-  this.resetPassword = (req, res) => {
+ exports.resetPassword = (req, res) => {
     Users.findOne({
         resetPasswordToken: req.params.token,
         status: 1,
@@ -322,7 +356,7 @@ function accountsController(methods, options) {
 
   // *** change password *** Author: Shefin S
 
-  this.changePassword = async (req, res) => {
+ exports.changePassword = async (req, res) => {
     var userData = req.identity.data;
     var userId = userData.id;
     var email = req.body.email;
@@ -420,7 +454,7 @@ function accountsController(methods, options) {
   };
 
   // **** Get profile **** Author: Shefin S
-  this.getProfile = (req, res) => {
+ exports.getProfile = (req, res) => {
     var userData = req.identity.data;
     var userId = userData.id;
     var findCriteria = {
@@ -455,7 +489,7 @@ function accountsController(methods, options) {
   }
 
   // **** Update Profile ***** Author: Shefin S
-  this.updateProfile = (req, res) => {
+ exports.updateProfile = (req, res) => {
     var userData = req.identity.data;
     var userId = userData.id;
     var firstName = req.body.firstName;
@@ -541,7 +575,7 @@ function accountsController(methods, options) {
 
   // **** Contact form enquiry **** Author: Shefin S
 
-  this.contactUs = (req, res) => {
+ exports.contactUs = (req, res) => {
     var fullName = req.body.fullName;
     var email = req.body.email;
     var message = req.body.message;
@@ -609,6 +643,6 @@ function accountsController(methods, options) {
 
     })
   }
-}
+// }
 
-module.exports = accountsController
+// module.exports = accountsController

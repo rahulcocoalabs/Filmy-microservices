@@ -1,9 +1,9 @@
-function connectionsController(methods, options) {
+// function connectionsController(methods, options) {
     var ObjectId = require('mongoose').Types.ObjectId;
     var constants = require('../helpers/constants');
     var Users = require('../models/user.model');
 
-    this.updateConnection = async (req, res) => {
+    exports.updateConnection = async (req, res) => {
         let userData = req.identity.data;
         let senderUserId = userData.id;
         // let senderUserId = '5e736a610c01be1e4540d9ff';
@@ -109,5 +109,5 @@ function connectionsController(methods, options) {
         }
 
     }
-}
-module.exports = connectionsController
+// }
+// module.exports = connectionsController

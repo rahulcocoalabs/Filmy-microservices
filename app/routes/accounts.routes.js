@@ -1,12 +1,19 @@
-module.exports = (app,methods,options) => {
-    const accounts = methods.loadController('accounts',options);
-    accounts.methods.post('/register',accounts.register, {auth:false});
-    accounts.methods.post('/login',accounts.login, {auth:false});
-    accounts.methods.post('/recover-password',accounts.recover, {auth:false});
-    accounts.methods.get('/reset/:token',accounts.reset, {auth:false});
-    accounts.methods.post('/reset-password/:token',accounts.resetPassword, {auth:false});
-    accounts.methods.patch('/change-password',accounts.changePassword, {auth:true});
-    accounts.methods.get('/profile',accounts.getProfile, {auth:true});
-    accounts.methods.patch('/update-profile',accounts.updateProfile, {auth:true});
-    accounts.methods.post('/contact-us',accounts.contactUs, {auth:true});
+const auth = require('../middleware/auth.js');
+
+module.exports = (app) => {
+    // const accounts = methods.loadController('accounts',options);
+   const accounts = require('../controllers/accounts.controller');
+  app.post('/accounts/register',accounts.register);
+  app.post('/accounts/login',accounts.login);
+  app.post('/accounts/recover-password',accounts.recover);
+  app.get('/accounts/reset/:token',accounts.reset);
+  app.post('/accounts/reset-password/:token',accounts.resetPassword);
+  app.patch('/accounts/change-password',auth,accounts.changePassword);
+  app.get('/accounts/profile',auth,accounts.getProfile);
+  app.patch('/accounts/update-profile',auth,accounts.updateProfile);
+  app.post('/accounts/contact-us',accounts.contactUs);
 }
+
+
+
+
