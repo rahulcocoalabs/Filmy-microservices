@@ -23,9 +23,9 @@ module.exports = {
   feeds: {
       resultsPerPage: 30,
       // imageUploadPath: relativeCommonPath + "feeds/images",
-      imageUploadPath: 'var/www/html/filmy/common/uploads/feeds/images/',
-      videoUploadPath: 'var/www/html/filmy/common/uploads/feeds/videos/',
-      audioUploadPath: 'var/www/html/filmy/common/uploads/feeds/audios/',
+      imageUploadPath: '/var/www/html/filmy/common/uploads/feeds/images/',
+      videoUploadPath: '/var/www/html/filmy/common/uploads/feeds/videos/',
+      audioUploadPath: '/var/www/html/filmy/common/uploads/feeds/audios/',
       //  imageUploadPath: 'common/uploads/feeds/images/',
       // videoUploadPath: 'common/uploads/feeds/videos/',
       // audioUploadPath: 'common/uploads/feeds/audios/',
