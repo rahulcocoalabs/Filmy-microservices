@@ -4,7 +4,7 @@
     var Users = require('../models/user.model');
 
     exports.updateConnection = async (req, res) => {
-        let userData = req.identity.data;
+        let userData = req.user;
         let senderUserId = userData.id;
         // let senderUserId = '5e736a610c01be1e4540d9ff';
         let params = req.body;
@@ -107,6 +107,70 @@
             }
             return res.send(responseObj);
         }
+
+    }
+
+    exports.listFollowers = async (req, res) => {
+        let userData = req.user;
+        let userId = userData.id;
+        let data = await Users.findById(userId)
+        .populate('followers')
+        .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+                message: 'Something went wrong while retrieving user',
+                status: false,
+                error: error
+            })
+        })
+        let i = 0;
+        await Promise.all(data.followers.map(async (follower) => {
+            let optionObj = await data.followings.find(o => o._id === follower._id);
+            if(optionObj){
+                console.log("followed")
+             data.followers[i].is_follow = true;
+            }else{
+                console.log("not followed")
+
+             data.followers[i].is_follow = false;
+            }
+            i = i + 1
+        }));
+
+       return res.send(data);
+
+    }
+
+
+    
+    exports.listFollowings = async (req, res) => {
+        let userData = req.user;
+        let userId = userData.id;
+        let data = await Users.findById(userId)
+        .populate('followings')
+        .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+                message: 'Something went wrong while retrieving user',
+                status: false,
+                error: error
+            })
+        })
+        let i = 0;
+        await Promise.all(data.followers.map(async (follower) => {
+            let optionObj = await data.followings.find(o => o._id === follower._id);
+            if(optionObj){
+                console.log("followed")
+             data.followers[i].is_follow = true;
+            }else{
+                console.log("not followed")
+
+             data.followers[i].is_follow = false;
+            }
+            i = i + 1
+        }));
+
+       return res.send(data);
 
     }
 // }

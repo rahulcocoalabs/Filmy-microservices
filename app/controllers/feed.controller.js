@@ -23,24 +23,52 @@ exports.createFeed = async (req, res) => {
   };
   var type = req.body.type || null;
   var images = [];
-  var documents = [];
+  var audios = [];
   var videos = [];
   // return res.send(req.files)
   if (req.files.images) {
-      console.log("Image field detected");
-      type = "image";
-      var len = files.images.length;
-      var i = 0;
-      while (i < len) {
-          images.push(files.images[i].filename);
-          i++;
-      }
-      console.log("images is " + images);
+    console.log("Image field detected");
+    // type = "image";
+    var len = files.images.length;
+    var i = 0;
+    while (i < len) {
+      var currentTime = moment().unix();
+      let imageObj = {};
+      imageObj.fileName = files.images[i].filename;
+      imageObj.createdDate = currentTime;
+      imageObj.status = 1;
+      images.push(imageObj);
+      i++;
+    }
+    console.log("images is " + images);
   }
   if (req.files.videos) {
-      console.log(req.files.videos);
-      type = "video";
-      videos = req.files.videos[0].filename;
+    console.log(req.files.videos);
+    var i = 0;
+
+    // type = "video";
+    while (i < len) {
+      var currentTime = moment().unix();
+      var videoObj = {};
+      videoObj.fileName = files.videos[i].filename;
+      videoObj.createdDate = currentTime;
+      videoObj.status = 1;
+      videos.push(videoObj);
+      i++;
+    }
+  }
+  if (req.files.audios) {
+    console.log(req.files.audios);
+    var i = 0;
+    while (i < len) {
+      var currentTime = moment().unix();
+      var audioObj = {};
+      audioObj.fileName = files.audios[i].filename;
+      audioObj.createdDate = currentTime;
+      audioObj.status = 1;
+      audios.push(audioObj);
+      i++;
+    }
   }
   // if (!req.files.images && !req.files.videos && req.files.documents) {
   //     type = "document";
@@ -53,7 +81,7 @@ exports.createFeed = async (req, res) => {
 
   // }
   if (!req.files.images && !req.files.videos) {
-      type = "text";
+    type = "text";
   }
 
   const feeds = new Feed({
@@ -61,6 +89,7 @@ exports.createFeed = async (req, res) => {
     content: content,
     images,
     videos,
+    isFeed: 1,
     status: 1,
     tsCreatedAt: Number(moment().unix()),
     tsModifiedAt: null
@@ -85,6 +114,127 @@ exports.createFeed = async (req, res) => {
 
 
 };
+
+exports.updateFeed = async (req, res) => {
+  console.log('in update feed');
+  var userData = req.user;
+  var userId = userData.id;
+  var feedId = req.params.id;
+  var content = req.body.content;
+  var files = req.files;
+
+  if (!content && !req.files) {
+    return res.send({
+      success: 0,
+      statusCode: 401,
+      message: 'Nothing to update'
+    })
+  };
+  var type = req.body.type || null;
+  var images = [];
+  var audios = [];
+  var videos = [];
+  // return res.send(req.files)
+  let feedData = await Feed.findById(feedId)
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while posting feed',
+        status: false,
+        error: error
+      })
+    })
+  if (feedData) {
+    let update = {};
+    if (content) {
+      update.content = content;
+
+    }
+    if (req.files.images) {
+      console.log("Image field detected");
+      // type = "image";
+      var len = files.images.length;
+      var i = 0;
+      while (i < len) {
+        var currentTime = moment().unix();
+        let imageObj = {};
+        imageObj.fileName = files.images[i].filename;
+        imageObj.createdDate = currentTime;
+        imageObj.status = 1;
+        images.push(imageObj);
+        i++;
+      }
+      update.images = images;
+
+      console.log("images is " + images);
+    }
+    if (req.files.videos) {
+      console.log(req.files.videos);
+      var i = 0;
+
+      // type = "video";
+      while (i < len) {
+        var currentTime = moment().unix();
+        var videoObj = {};
+        videoObj.fileName = files.videos[i].filename;
+        videoObj.createdDate = currentTime;
+        videoObj.status = 1;
+        videos.push(videoObj);
+        i++;
+      }
+      update.videos = videos;
+
+    }
+    if (req.files.audios) {
+      console.log(req.files.audios);
+      var i = 0;
+      while (i < len) {
+        var currentTime = moment().unix();
+        var audioObj = {};
+        audioObj.fileName = files.audios[i].filename;
+        audioObj.createdDate = currentTime;
+        audioObj.status = 1;
+        audios.push(audioObj);
+        i++;
+      }
+      update.audios = audios;
+
+    }
+    update.tsModifiedAt = moment().unix();
+  
+    // if (!req.files.images && !req.files.videos) {
+    //   type = "text";
+    // }
+
+    feedData.set(update);
+
+
+
+    let feedData = await feedData.save()
+      .catch((error) => {
+        console.log(error)
+        return res.status(200).send({
+          message: 'Something went wrong while updating feed',
+          status: false,
+          error: error
+        })
+      })
+    res.send({
+      success: 1,
+      statusCode: 200,
+      message: 'You have updated feed successfully'
+    })
+
+  } else {
+    return res.send({
+      success: 0,
+      statusCode: 401,
+      message: 'Invalid feed'
+    })
+  }
+};
+
+
 
 exports.getFeed = async (req, res) => {
   var userData = req.identity.data;
@@ -117,9 +267,35 @@ exports.getFeed = async (req, res) => {
   })
 };
 
+exports.deleteFeed = async (req, res) => {
+  var userData = req.user;
+  var userId = userData.id;
+  var feedId = req.params.id;
+  let feedData = await Feed.find({
+    _id: feedId,
+    userId,
+    status: 1
+  })
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while getting feed',
+        status: false,
+        error: error
+      })
+    })
+  if (feedData.length > 0) {
+    let updateData = await Feed.update({ _id: feedId }, {
+
+    })
+  }
+}
+
+
+
 exports.addComment = (req, res) => {
   console.log('in add comment');
-  var userData = req.identity.data;
+  var userData = req.user.data;
   var userId = userData.id;
   var postId = req.body.postId;
   var comment = req.body.comment;

@@ -5,6 +5,8 @@ const FeedSchema = mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
     images: Array,
     videos: Array,
+    audios: Array,
+    isFeed:Number,
     status: Number,
     tsCreatedAt: Number,
     tsModifiedAt: Number
