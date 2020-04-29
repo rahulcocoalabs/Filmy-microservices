@@ -455,7 +455,7 @@
 
   // **** Get profile **** Author: Shefin S
  exports.getProfile = (req, res) => {
-    var userData = req.user;
+    var userData = req.user; 
     var userId = userData.id;
     var findCriteria = {
       _id: userId
