@@ -14,11 +14,11 @@ exports.createFeed = async (req, res) => {
   var content = req.body.content;
   var files = req.files;
 
-  if (!content) {
+  if (!content & !req.files.images && !req.files.videos && !req.files.audios) {
     return res.send({
       success: 0,
       statusCode: 401,
-      message: 'Feed content cannot be empty'
+      message: 'Feed cannot be empty'
     })
   };
   var type = req.body.type || null;
@@ -89,7 +89,6 @@ exports.createFeed = async (req, res) => {
     content: content,
     images,
     videos,
-    isFeed: 1,
     status: 1,
     tsCreatedAt: Number(moment().unix()),
     tsModifiedAt: null
@@ -106,7 +105,24 @@ exports.createFeed = async (req, res) => {
         error: error
       })
     })
-  res.send({
+
+    //update post count
+
+    var upsertData = {
+      $inc: {noOfFeeds: 1}
+    };
+
+await User.update({_id: userId}, upsertData)
+.catch((error) => {
+  console.log(error)
+  return res.status(200).send({
+    message: 'Something went wrong while incrementing no of feed',
+    status: false,
+    error: error
+  })
+})
+
+  return res.send({
     success: 1,
     statusCode: 200,
     message: 'You have posted successfully'
@@ -145,6 +161,7 @@ exports.updateFeed = async (req, res) => {
       })
     })
   if (feedData) {
+    if(feedData.userId === userId){
     let update = {};
     if (content) {
       update.content = content;
@@ -224,6 +241,13 @@ exports.updateFeed = async (req, res) => {
       statusCode: 200,
       message: 'You have updated feed successfully'
     })
+  }else{
+    return res.send({
+      success: 0,
+      statusCode: 401,
+      message: 'Its not your feed'
+    })
+  }
 
   } else {
     return res.send({
@@ -236,35 +260,64 @@ exports.updateFeed = async (req, res) => {
 
 
 
-exports.getFeed = async (req, res) => {
-  var userData = req.identity.data;
+exports.getHomeFeeds = async (req, res) => {
+  var userData = req.user;
   var userId = userData.id;
-  var UserData = await User.findOne({
-    _id: userId
-  });
-  var followersArray = UserData.followers;
+  var usersData = await User.findOne({
+    _id: userId,
+    status : 1
+  })
+  .catch((error) => {
+    console.log(error)
+    return res.status(200).send({
+      message: 'Something went wrong while getting user data',
+      status: false,
+      error: error
+    })
+  })
+  if(usersData){
+  var followingsArray = usersData.followings;
   var findCriteria = {
     $or: [{
       userId: userId
     },
     {
       userId: {
-        $in: followersArray
+        $in: followingsArray
       }
     }
-    ]
+    ],
+    status : 1
   };
-  Feed.find(findCriteria).sort({
+ let homeFeedData = await Feed.find(findCriteria).sort({
     'tsCreatedAt': -1
-  }).then(data => {
+  })
+  .catch((error) => {
+    console.log(error)
+    return res.status(200).send({
+      message: 'Something went wrong while getting feed data',
+      status: false,
+      error: error
+    })
+  })
+  
     res.send({
       success: 1,
       statusCode: 200,
       message: 'Feeds listed successfully',
-      basePath: feedsConfig.basePath,
-      items: data
+      imageBase: feedsConfig.imageBase,
+      videoBase: feedsConfig.videoBase,
+      audioBase: feedsConfig.audioBase,
+      items: homeFeedData
     })
-  })
+  }else{
+    return res.send({
+      success: 0,
+      statusCode: 401,
+      message: 'Invalid user'
+    })
+  }
+
 };
 
 exports.deleteFeed = async (req, res) => {
@@ -284,9 +337,46 @@ exports.deleteFeed = async (req, res) => {
         error: error
       })
     })
+
   if (feedData.length > 0) {
     let updateData = await Feed.update({ _id: feedId }, {
+        status : 0
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while deleting a feed',
+        status: false,
+        error: error
+      })
+    })
 
+  //update post count
+
+  var upsertData = {
+    $inc: {noOfFeeds: -1}
+  };
+
+await User.update({_id: userId}, upsertData)
+.catch((error) => {
+console.log(error)
+return res.status(200).send({
+  message: 'Something went wrong while incrementing no of feed',
+  status: false,
+  error: error
+})
+})
+
+   return res.send({
+      success: 1,
+      statusCode: 200,
+      message: 'You have deleted a feed successfully'
+    })
+  }else{
+    return res.send({
+      success: 0,
+      statusCode: 401,
+      message: 'Invalid feed'
     })
   }
 }

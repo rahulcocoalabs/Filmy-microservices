@@ -22,6 +22,7 @@ const UserSchema = mongoose.Schema({
     followings: Array,
     resetPasswordToken: String,
     resetPasswordExpires: Date,
+    noOfFeeds : Number,
     status: Number,
     tsCreatedAt: Number,
     tsModifiedAt: Number

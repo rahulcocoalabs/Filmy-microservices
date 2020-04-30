@@ -27,12 +27,13 @@ var feedsUpload = multer({ storage: storage });
 
 
 module.exports = (app) => {
-    const feeds = require('../controllers/feed.controller');
+    const feeds = require('../controllers/feeds.controller');
 
    app.post('/feeds',auth,feedsUpload.fields([{ name: 'images', maxCount: feedsConfig.maxImageCount }, { name: 'audios', maxCount: feedsConfig.maxAudiosCount }, { name: 'videos', maxCount: feedsConfig.maxVideoCount }]),feeds.createFeed);
    app.patch('/feeds/:id',auth,feedsUpload.fields([{ name: 'images', maxCount: feedsConfig.maxImageCount }, { name: 'audios', maxCount: feedsConfig.maxAudiosCount }, { name: 'videos', maxCount: feedsConfig.maxVideoCount }]),feeds.updateFeed);
-   app.get('/feeds/:id',auth,feeds.getFeed);
+//    app.get('/feeds/:id',auth,feeds.getFeed);
    app.delete('/feeds/:id',auth,feeds.deleteFeed);
+   app.get('/feeds/home',auth,feeds.getHomeFeeds);
 
    app.post('/feeds/add-comment',auth,feeds.addComment);
    app.get('/feeds/get-comment/:postId',auth,feeds.getComment);

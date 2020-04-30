@@ -29,7 +29,7 @@ module.exports = {
       }
     },
     {
-      name: 'Feeds Filmy Microservices',
+      name: 'Connections Filmy Microservices',
       script: 'connections.service.js',
       // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
       instances: 1,

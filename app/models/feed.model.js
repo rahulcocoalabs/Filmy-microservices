@@ -6,7 +6,6 @@ const FeedSchema = mongoose.Schema({
     images: Array,
     videos: Array,
     audios: Array,
-    isFeed:Number,
     status: Number,
     tsCreatedAt: Number,
     tsModifiedAt: Number
