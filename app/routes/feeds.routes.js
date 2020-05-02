@@ -8,12 +8,16 @@ var feedsConfig = config.feeds;
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        if (req.files.images)
+        if (req.files.images){
+            console.log("inside image")
             cb(null, feedsConfig.imageUploadPath.trim());
-        if (req.files.videos)
+        }else if (req.files.videos){
+            console.log("inside videos")
             cb(null, feedsConfig.videoUploadPath.trim());
-        if (req.files.audios)
+        }else if (req.files.audios){
+            console.log("inside audios")
             cb(null, feedsConfig.audioUploadPath.trim());
+        }
         // if (!req.files.images && !req.files.videos) {
         //     return cb({success: 0, message: "You cannot " });
         // }
@@ -29,11 +33,12 @@ var feedsUpload = multer({ storage: storage });
 module.exports = (app) => {
     const feeds = require('../controllers/feeds.controller');
 
-   app.post('/feeds',auth,feedsUpload.fields([{ name: 'images', maxCount: feedsConfig.maxImageCount }, { name: 'audios', maxCount: feedsConfig.maxAudiosCount }, { name: 'videos', maxCount: feedsConfig.maxVideoCount }]),feeds.createFeed);
-   app.patch('/feeds/:id',auth,feedsUpload.fields([{ name: 'images', maxCount: feedsConfig.maxImageCount }, { name: 'audios', maxCount: feedsConfig.maxAudiosCount }, { name: 'videos', maxCount: feedsConfig.maxVideoCount }]),feeds.updateFeed);
+   app.post('/feeds',auth,feedsUpload.fields([{ name: 'images', maxCount: feedsConfig.maxImagesCount }, { name: 'audios', maxCount: feedsConfig.maxAudiosCount }, { name: 'videos', maxCount: feedsConfig.maxVideosCount }]),feeds.createFeed);
+   app.patch('/feeds/:id',auth,feedsUpload.fields([{ name: 'images', maxCount: feedsConfig.maxImagesCount }, { name: 'audios', maxCount: feedsConfig.maxAudiosCount }, { name: 'videos', maxCount: feedsConfig.maxVideosCount }]),feeds.updateFeed);
 //    app.get('/feeds/:id',auth,feeds.getFeed);
    app.delete('/feeds/:id',auth,feeds.deleteFeed);
    app.get('/feeds/home',auth,feeds.getHomeFeeds);
+   app.get('/feeds/albums',auth,feeds.getFeedsAlbum);
 
    app.post('/feeds/add-comment',auth,feeds.addComment);
    app.get('/feeds/get-comment/:postId',auth,feeds.getComment);

@@ -23,6 +23,9 @@ const UserSchema = mongoose.Schema({
     resetPasswordToken: String,
     resetPasswordExpires: Date,
     noOfFeeds : Number,
+    noOfImages : Number,
+    noOfVideos : Number,
+    noOfAudios : Number,
     status: Number,
     tsCreatedAt: Number,
     tsModifiedAt: Number

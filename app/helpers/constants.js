@@ -2,4 +2,8 @@ module.exports = Object.freeze({
 
     FOLLOW_STATUS : "follow",
     UN_FOLLOW_STATUS : "unfollow",
+
+    ALBUM_IMAGE : "image",
+    ALBUM_VIDEO : "video",
+    ALBUM_AUDIO : "audio",
 });

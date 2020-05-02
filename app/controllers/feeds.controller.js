@@ -3,6 +3,7 @@ var Feed = require('../models/feed.model.js');
 var User = require('../models/user.model.js');
 var Comments = require('../models/comments.model.js');
 var config = require('../../config/app.config.js');
+var constants = require('../helpers/constants');
 var feedsConfig = config.feeds;
 var moment = require('moment');
 var ObjectId = require('mongoose').Types.ObjectId;
@@ -45,6 +46,7 @@ exports.createFeed = async (req, res) => {
   if (req.files.videos) {
     console.log(req.files.videos);
     var i = 0;
+    var len = files.videos.length;
 
     // type = "video";
     while (i < len) {
@@ -59,6 +61,8 @@ exports.createFeed = async (req, res) => {
   }
   if (req.files.audios) {
     console.log(req.files.audios);
+    var len = files.audios.length;
+
     var i = 0;
     while (i < len) {
       var currentTime = moment().unix();
@@ -80,15 +84,16 @@ exports.createFeed = async (req, res) => {
   //     }
 
   // }
-  if (!req.files.images && !req.files.videos) {
-    type = "text";
-  }
+  // if (!req.files.images && !req.files.videos) {
+  //   type = "text";
+  // }
 
   const feeds = new Feed({
     userId: userId,
     content: content,
     images,
     videos,
+    audios,
     status: 1,
     tsCreatedAt: Number(moment().unix()),
     tsModifiedAt: null
@@ -109,14 +114,20 @@ exports.createFeed = async (req, res) => {
     //update post count
 
     var upsertData = {
-      $inc: {noOfFeeds: 1}
+      $inc: {
+        noOfFeeds: 1,
+        noOfImages: images.length,
+        noOfVideos: videos.length,
+        noOfAudios: audios.length,
+      }
     };
+   
 
 await User.update({_id: userId}, upsertData)
 .catch((error) => {
   console.log(error)
   return res.status(200).send({
-    message: 'Something went wrong while incrementing no of feed',
+    message: 'Something went wrong while updating counts',
     status: false,
     error: error
   })
@@ -150,8 +161,11 @@ exports.updateFeed = async (req, res) => {
   var images = [];
   var audios = [];
   var videos = [];
+  var incrementImagesCount = 0;
+  var incrementVideosCount = 0;
+  var incrementAudiosCount = 0;
   // return res.send(req.files)
-  let feedData = await Feed.findById(feedId)
+  var feedData = await Feed.findById({ _id : feedId}).lean()
     .catch((error) => {
       console.log(error)
       return res.status(200).send({
@@ -160,8 +174,17 @@ exports.updateFeed = async (req, res) => {
         error: error
       })
     })
+    var oldVideosData = feedData.videos;
+    var oldImagesData = feedData.images;
+    var oldAudiosData = feedData.audios;
+          console.log("feedData")
+      console.log(feedData.videos)
+      console.log("feedData")
   if (feedData) {
-    if(feedData.userId === userId){
+    // console.log(feedData.userId , typeof feedData.userId)
+    // console.log(userId , typeof userId)
+    if(JSON.stringify(feedData.userId) === JSON.stringify(userId)){
+
     let update = {};
     if (content) {
       update.content = content;
@@ -172,6 +195,10 @@ exports.updateFeed = async (req, res) => {
       // type = "image";
       var len = files.images.length;
       var i = 0;
+      var oldLeng = oldImagesData.length ;
+      if(oldLeng !== len){
+        incrementImagesCount = (len - oldLeng);
+      }
       while (i < len) {
         var currentTime = moment().unix();
         let imageObj = {};
@@ -187,8 +214,12 @@ exports.updateFeed = async (req, res) => {
     }
     if (req.files.videos) {
       console.log(req.files.videos);
+      var len = files.videos.length;
+      var oldLeng = oldVideosData.length ;
       var i = 0;
-
+      if(oldLeng !== len){
+        incrementVideosCount = (len - oldLeng);
+      }
       // type = "video";
       while (i < len) {
         var currentTime = moment().unix();
@@ -204,6 +235,11 @@ exports.updateFeed = async (req, res) => {
     }
     if (req.files.audios) {
       console.log(req.files.audios);
+      var len = files.audios.length;
+      var oldLeng = oldAudiosData.length ;
+      if(oldLeng !== len){
+        incrementAudiosCount = (len - oldLeng);
+      }
       var i = 0;
       while (i < len) {
         var currentTime = moment().unix();
@@ -223,11 +259,8 @@ exports.updateFeed = async (req, res) => {
     //   type = "text";
     // }
 
-    feedData.set(update);
 
-
-
-    let feedData = await feedData.save()
+    let feedData = await Feed.update({_id : feedId},update)
       .catch((error) => {
         console.log(error)
         return res.status(200).send({
@@ -236,7 +269,29 @@ exports.updateFeed = async (req, res) => {
           error: error
         })
       })
-    res.send({
+
+      var upsertData = {
+        $inc: {
+          noOfImages: incrementImagesCount,
+          noOfVideos: incrementVideosCount,
+          noOfAudios: incrementAudiosCount,
+        }
+      };
+     
+  
+  await User.update({_id: userId}, upsertData)
+  .catch((error) => {
+    console.log(error)
+    return res.status(200).send({
+      message: 'Something went wrong while updating counts',
+      status: false,
+      error: error
+    })
+  })
+  
+
+
+    return res.send({
       success: 1,
       statusCode: 200,
       message: 'You have updated feed successfully'
@@ -354,7 +409,12 @@ exports.deleteFeed = async (req, res) => {
   //update post count
 
   var upsertData = {
-    $inc: {noOfFeeds: -1}
+    $inc: {
+      noOfFeeds: -1,
+      noOfImages: (feedData.images.length * -1),
+      noOfVideos: (feedData.videos.length * -1),
+      noOfAudios:  (feedData.audios.length * -1),
+    }
   };
 
 await User.update({_id: userId}, upsertData)
@@ -451,3 +511,123 @@ exports.getComment = (req, res) => {
 // }
 
 // module.exports = feedsController;
+
+
+
+exports.getFeedsAlbum = async (req,res) => {
+  var userData = req.user;
+  var userId = userData.id;
+  var params = req.query;
+  var usersData = await User.findOne({
+    _id: userId,
+    status : 1
+  })
+  .catch((error) => {
+    console.log(error)
+    return res.status(200).send({
+      message: 'Something went wrong while getting user data',
+      status: false,
+      error: error
+    })
+  })
+  if(usersData){
+    let page = params.page || 1;
+    let perPage = Number(params.perPage) || 10;
+    perPage = perPage > 0 ? perPage : 10;
+    var offset = (page - 1) * perPage;
+   if(params.type === constants.ALBUM_IMAGE){
+     let imageData = await Feed.aggregate([
+      { $match : { userId :  ObjectId(userId) } },
+      { $unwind : "$images" } ,
+      { $limit : perPage},{ $skip : offset },
+      { $project : { _id: 0,'feedId':'$_id','image':'$images.fileName'} } 
+     ])
+     .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while getting feeds image data',
+        status: false,
+        error: error
+      })
+    })
+   let totalImageCount =  usersData.noOfImages;
+   totalPages = totalImageCount / perPage;
+   totalPages = Math.ceil(totalPages);
+   var hasNextPage = page < totalPages;
+
+   return  res.send({
+      success: 1,
+      statusCode: 200,
+      items: imageData,
+      count : totalImageCount,
+      totalPages,
+      hasNextPage,
+      message: 'Images listed successfully'
+    })
+   }else if(params.type === constants.ALBUM_VIDEO){
+    let videoData = await Feed.aggregate([
+      { $match : { userId :  ObjectId(userId) } },
+      { $unwind : "$videos" } ,
+      { $limit : perPage},{ $skip : offset },
+      { $project : { _id: 0,'feedId':'$_id','video':'$videos.fileName'} } 
+     ])
+     .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while getting feeds videos data',
+        status: false,
+        error: error
+      })
+    })
+   let totalVideoCount =  usersData.noOfVideos;
+   totalPages = totalVideoCount / perPage;
+   totalPages = Math.ceil(totalPages);
+   var hasNextPage = page < totalPages;
+
+   return  res.send({
+      success: 1,
+      statusCode: 200,
+      items: videoData,
+      count : totalVideoCount,
+      totalPages,
+      hasNextPage,
+      message: 'Videos listed successfully'
+    })
+
+   }else if(params.type === constants.ALBUM_AUDIO){
+    let audioData = await Feed.aggregate([
+      { $match : { userId :  ObjectId(userId) } },
+      { $unwind : "$audios" } ,
+      { $limit : perPage},{ $skip : offset },
+      { $project : { _id: 0,'feedId':'$_id','video':'$audios.fileName'} } 
+     ])
+     .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while getting feeds audios data',
+        status: false,
+        error: error
+      })
+    })
+   let totalAudioCount =  usersData.noOfAudios;
+   totalPages = totalAudioCount / perPage;
+   totalPages = Math.ceil(totalPages);
+   var hasNextPage = page < totalPages;
+
+   return  res.send({
+      success: 1,
+      statusCode: 200,
+      items: audioData,
+      count : totalAudioCount,
+      totalPages,
+      hasNextPage,
+      message: 'Audios listed successfully'
+    })
+
+
+   }
+    
+
+
+  }
+}
