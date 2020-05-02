@@ -8,16 +8,24 @@ var feedsConfig = config.feeds;
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        if (req.files.images){
+        console.log("----------------------------")
+        console.log("file")
+        console.log(file)
+        console.log("file")
+        if (file.fieldname === "images"){
             console.log("inside image")
             cb(null, feedsConfig.imageUploadPath.trim());
-        }else if (req.files.videos){
+        } else if (file.fieldname === "videos"){
             console.log("inside videos")
             cb(null, feedsConfig.videoUploadPath.trim());
-        }else if (req.files.audios){
+        } else if (file.fieldname === "audios"){
             console.log("inside audios")
             cb(null, feedsConfig.audioUploadPath.trim());
+        }else{
+            return cb({success: 0, message: "Invalid types" });
         }
+        console.log("----------------------------")
+
         // if (!req.files.images && !req.files.videos) {
         //     return cb({success: 0, message: "You cannot " });
         // }
