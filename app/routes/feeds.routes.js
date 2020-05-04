@@ -8,27 +8,17 @@ var feedsConfig = config.feeds;
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        console.log("----------------------------")
-        console.log("file")
-        console.log(file)
-        console.log("file")
+     
         if (file.fieldname === "images"){
-            console.log("inside image")
             cb(null, feedsConfig.imageUploadPath.trim());
         } else if (file.fieldname === "videos"){
-            console.log("inside videos")
             cb(null, feedsConfig.videoUploadPath.trim());
         } else if (file.fieldname === "audios"){
-            console.log("inside audios")
             cb(null, feedsConfig.audioUploadPath.trim());
         }else{
             return cb({success: 0, message: "Invalid types" });
         }
-        console.log("----------------------------")
-
-        // if (!req.files.images && !req.files.videos) {
-        //     return cb({success: 0, message: "You cannot " });
-        // }
+        
     },
     filename: function (req, file, cb) {
         cb(null, file.fieldname + '-' + Date.now())
@@ -45,8 +35,10 @@ module.exports = (app) => {
    app.patch('/feeds/:id',auth,feedsUpload.fields([{ name: 'images', maxCount: feedsConfig.maxImagesCount }, { name: 'audios', maxCount: feedsConfig.maxAudiosCount }, { name: 'videos', maxCount: feedsConfig.maxVideosCount }]),feeds.updateFeed);
 //    app.get('/feeds/:id',auth,feeds.getFeed);
    app.delete('/feeds/:id',auth,feeds.deleteFeed);
+   app.get('/feeds',auth,feeds.getYourFeeds);
    app.get('/feeds/home',auth,feeds.getHomeFeeds);
    app.get('/feeds/albums',auth,feeds.getFeedsAlbum);
+   app.delete('/feeds/albums/:id',auth,feeds.deleteFeedsAlbum);
 
    app.post('/feeds/add-comment',auth,feeds.addComment);
    app.get('/feeds/get-comment/:postId',auth,feeds.getComment);

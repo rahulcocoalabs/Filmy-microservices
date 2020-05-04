@@ -41,7 +41,6 @@ exports.createFeed = async (req, res) => {
       images.push(imageObj);
       i++;
     }
-    console.log("images is " + images);
   }
   if (req.files.videos) {
     console.log(req.files.videos);
@@ -313,11 +312,99 @@ exports.updateFeed = async (req, res) => {
   }
 };
 
+exports.getYourFeeds = async (req,res) => {
+  var userData = req.user;
+  var userId = userData.id;
+
+  var params = req.query;
+  var page = params.page || 1;
+  page = page > 0 ? page : 1;
+  var perPage = Number(params.perPage) || feedsConfig.resultsPerPage;
+  perPage = perPage > 0 ? perPage : feedsConfig.resultsPerPage;
+  var offset = (page - 1) * perPage;
+
+  var usersData = await User.findOne({
+    _id: userId,
+    status : 1
+  })
+  .catch((error) => {
+    console.log(error)
+    return res.status(200).send({
+      message: 'Something went wrong while getting user data',
+      status: false,
+      error: error
+    })
+  })
+  if(usersData){
+  var findCriteria = {
+    userId,
+    status : 1
+  };
+ let yourFeedData = await Feed.find(findCriteria)
+ .limit(perPage)
+ .skip(offset)
+ .sort({
+    'tsCreatedAt': -1
+  })
+  .catch((error) => {
+    console.log(error)
+    return res.status(200).send({
+      message: 'Something went wrong while getting your feed data',
+      status: false,
+      error: error
+    })
+  })
+
+  let yourFeedsCount = await Feed.count(findCriteria)
+ .sort({
+    'tsCreatedAt': -1
+  })
+  .catch((error) => {
+    console.log(error)
+    return res.status(200).send({
+      message: 'Something went wrong while getting your feed count',
+      status: false,
+      error: error
+    })
+  })
+
+ let totalPages = yourFeedsCount / perPage;
+  totalPages = Math.ceil(totalPages);
+  var hasNextPage = page < totalPages;
+    res.send({
+      success: 1,
+      statusCode: 200,
+      message: 'Feeds listed successfully',
+      imageBase: feedsConfig.imageBase,
+      videoBase: feedsConfig.videoBase,
+      audioBase: feedsConfig.audioBase,
+      items: yourFeedData,
+      count : yourFeedsCount,
+      totalPages,
+      hasNextPage,
+    })
+  }else{
+    return res.send({
+      success: 0,
+      statusCode: 401,
+      message: 'Invalid user'
+    })
+  }
+
+}
 
 
 exports.getHomeFeeds = async (req, res) => {
   var userData = req.user;
   var userId = userData.id;
+
+  var params = req.query;
+  var page = params.page || 1;
+  page = page > 0 ? page : 1;
+  var perPage = Number(params.perPage) || feedsConfig.resultsPerPage;
+  perPage = perPage > 0 ? perPage : feedsConfig.resultsPerPage;
+  var offset = (page - 1) * perPage;
+
   var usersData = await User.findOne({
     _id: userId,
     status : 1
@@ -344,7 +431,10 @@ exports.getHomeFeeds = async (req, res) => {
     ],
     status : 1
   };
- let homeFeedData = await Feed.find(findCriteria).sort({
+ let homeFeedData = await Feed.find(findCriteria)
+ .limit(perPage)
+ .skip(offset)
+ .sort({
     'tsCreatedAt': -1
   })
   .catch((error) => {
@@ -356,6 +446,23 @@ exports.getHomeFeeds = async (req, res) => {
     })
   })
   
+  let homeFeedsCount = await Feed.count(findCriteria)
+  .sort({
+     'tsCreatedAt': -1
+   })
+   .catch((error) => {
+     console.log(error)
+     return res.status(200).send({
+       message: 'Something went wrong while getting your feed count',
+       status: false,
+       error: error
+     })
+   })
+ 
+  let totalPages = homeFeedsCount / perPage;
+   totalPages = Math.ceil(totalPages);
+   var hasNextPage = page < totalPages;
+
     res.send({
       success: 1,
       statusCode: 200,
@@ -363,7 +470,10 @@ exports.getHomeFeeds = async (req, res) => {
       imageBase: feedsConfig.imageBase,
       videoBase: feedsConfig.videoBase,
       audioBase: feedsConfig.audioBase,
-      items: homeFeedData
+      items: homeFeedData,
+      count : homeFeedsCount,
+      totalPages,
+      hasNextPage,
     })
   }else{
     return res.send({
@@ -535,12 +645,27 @@ exports.getFeedsAlbum = async (req,res) => {
     let perPage = Number(params.perPage) || 10;
     perPage = perPage > 0 ? perPage : 10;
     var offset = (page - 1) * perPage;
+    console.log("offset : " + offset)
+    console.log("perPage : " + perPage)
    if(params.type === constants.ALBUM_IMAGE){
      let imageData = await Feed.aggregate([
-      { $match : { userId :  ObjectId(userId) } },
-      { $unwind : "$images" } ,
-      { $limit : perPage},{ $skip : offset },
-      { $project : { _id: 0,'feedId':'$_id','image':'$images.fileName'} } 
+      { $match : { userId :  ObjectId(userId), status : 1  } },
+      // { $unwind : "$images" } ,
+      // { $limit : perPage},{ $skip : offset },
+
+      { $project : { _id: 0,'feedId':'$_id','image':'$images.fileName'} } ,
+      {
+        $facet: {
+          edges: [
+            // { $sort: sort },
+            { $skip: offset },
+            { $limit: perPage },
+          ],
+          pageInfo: [
+            { $group: { _id: null, count: { $sum: 1 } } },
+          ],
+        },
+      }
      ])
      .catch((error) => {
       console.log(error)
@@ -566,7 +691,7 @@ exports.getFeedsAlbum = async (req,res) => {
     })
    }else if(params.type === constants.ALBUM_VIDEO){
     let videoData = await Feed.aggregate([
-      { $match : { userId :  ObjectId(userId) } },
+      { $match : { userId :  ObjectId(userId),status : 1  } },
       { $unwind : "$videos" } ,
       { $limit : perPage},{ $skip : offset },
       { $project : { _id: 0,'feedId':'$_id','video':'$videos.fileName'} } 
@@ -596,7 +721,7 @@ exports.getFeedsAlbum = async (req,res) => {
 
    }else if(params.type === constants.ALBUM_AUDIO){
     let audioData = await Feed.aggregate([
-      { $match : { userId :  ObjectId(userId) } },
+      { $match : { userId :  ObjectId(userId), status : 1 } },
       { $unwind : "$audios" } ,
       { $limit : perPage},{ $skip : offset },
       { $project : { _id: 0,'feedId':'$_id','video':'$audios.fileName'} } 
@@ -629,5 +754,75 @@ exports.getFeedsAlbum = async (req,res) => {
     
 
 
+  }
+}
+
+
+
+exports.deleteFeedsAlbum = async (req, res) => {
+  var userData = req.user;
+  var userId = userData.id;
+  var feedId = req.params.id;
+  // var type = 
+  let feedData = await Feed.find({
+    _id: feedId,
+    userId,
+    status: 1
+  })
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while getting feed',
+        status: false,
+        error: error
+      })
+    })
+
+  if (feedData.length > 0) {
+
+    let updateData = await Feed.update({ _id: feedId }, {
+        status : 0
+    })
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while deleting a feed',
+        status: false,
+        error: error
+      })
+    })
+
+  //update post count
+
+  var upsertData = {
+    $inc: {
+      noOfFeeds: -1,
+      noOfImages: (feedData.images.length * -1),
+      noOfVideos: (feedData.videos.length * -1),
+      noOfAudios:  (feedData.audios.length * -1),
+    }
+  };
+
+await User.update({_id: userId}, upsertData)
+.catch((error) => {
+console.log(error)
+return res.status(200).send({
+  message: 'Something went wrong while incrementing no of feed',
+  status: false,
+  error: error
+})
+})
+
+   return res.send({
+      success: 1,
+      statusCode: 200,
+      message: 'You have deleted a feed successfully'
+    })
+  }else{
+    return res.send({
+      success: 0,
+      statusCode: 401,
+      message: 'Invalid feed'
+    })
   }
 }
