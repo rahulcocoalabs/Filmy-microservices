@@ -6,4 +6,7 @@ module.exports = Object.freeze({
     ALBUM_IMAGE : "image",
     ALBUM_VIDEO : "video",
     ALBUM_AUDIO : "audio",
+
+    FOLLOWER_SEARCH : "follower",
+    FOLLOWING_SEARCH : "following",
 });

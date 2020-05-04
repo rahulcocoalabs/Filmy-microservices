@@ -173,5 +173,68 @@
        return res.send(data);
 
     }
+
+
+    exports.listAutoComplete = async (req,res) =>{
+        let userData = req.user;
+        let userId = userData.id;
+        let type = req.query.type;
+        let search = req.query.search;
+
+        if(type === constants.FOLLOWING_SEARCH){
+        let data = await Users.findById(userId)
+        .populate({ 
+            path  : 'followings',
+            match : {
+                fullName: { $regex: search }
+            },
+            select : '_id fullName profession image'
+                      
+            }
+        )
+        .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+                message: 'Something went wrong while retrieving user',
+                status: false,
+                error: error
+            })
+        })
+        let followings = data.followings;
+        let responseObj = {
+            list : followings
+        }
+       return res.send(responseObj);
+
+        
+    }else if(type === constants.FOLLOWER_SEARCH){
+     let data = await Users.findById(userId)
+        .populate({ 
+            path  : 'followers',
+            match : {
+                fullName: { $regex: search }
+            },
+            select : '_id fullName profession image'
+            // options: { sort: { fullName: 1 }
+            // }
+        }
+        )
+        .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+                message: 'Something went wrong while retrieving user',
+                status: false,
+                error: error
+            })
+        })
+        if(data){
+        let followers = data.followers;
+        let responseObj = {
+            list : followers
+        }
+       return res.send(responseObj);
+        }
+    }
+}
 // }
 // module.exports = connectionsController
