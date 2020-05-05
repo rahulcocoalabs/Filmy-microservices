@@ -14,7 +14,7 @@ exports.createFeed = async (req, res) => {
   var userId = userData.id;
   var content = req.body.content;
   var files = req.files;
-
+  console.log(" content : " + content  )
   if (!content & !req.files.images && !req.files.videos && !req.files.audios) {
     return res.send({
       success: 0,
@@ -724,7 +724,7 @@ exports.getFeedsAlbum = async (req,res) => {
       { $match : { userId :  ObjectId(userId), status : 1 } },
       { $unwind : "$audios" } ,
       { $limit : perPage},{ $skip : offset },
-      { $project : { _id: 0,'feedId':'$_id','video':'$audios.fileName'} } 
+      { $project : { _id: 0,'feedId':'$_id','audio':'$audios.fileName'} } 
      ])
      .catch((error) => {
       console.log(error)
@@ -759,70 +759,96 @@ exports.getFeedsAlbum = async (req,res) => {
 
 
 
-exports.deleteFeedsAlbum = async (req, res) => {
-  var userData = req.user;
-  var userId = userData.id;
-  var feedId = req.params.id;
-  // var type = 
-  let feedData = await Feed.find({
-    _id: feedId,
-    userId,
-    status: 1
-  })
-    .catch((error) => {
-      console.log(error)
-      return res.status(200).send({
-        message: 'Something went wrong while getting feed',
-        status: false,
-        error: error
-      })
-    })
+// exports.deleteFeedsAlbum = async (req, res) => {
+//   var userData = req.user;
+//   var userId = userData.id;
+//   var feedId = req.params.id;
+//   var type = req.body.type;
+//   var deleteData = req.body.deleteData;
+//   if(type === constants.ALBUM_IMAGE){
+//   // var type = 
+//   await Promise.all(deleteData.map(async (item) => {
+//     let feedData = await Feed.find({
+//       _id: item.feedId,
+//       userId,
+//       status: 1
+//     })
+//       .catch((error) => {
+//         console.log(error)
+//         return res.status(200).send({
+//           message: 'Something went wrong while getting feed',
+//           status: false,
+//           error: error
+//         })
+//       })
 
-  if (feedData.length > 0) {
+//   if (feedData) {image
+//       // if()
+//       // let updateData = await Feed.update({_id : item.fee)
 
-    let updateData = await Feed.update({ _id: feedId }, {
-        status : 0
-    })
-    .catch((error) => {
-      console.log(error)
-      return res.status(200).send({
-        message: 'Something went wrong while deleting a feed',
-        status: false,
-        error: error
-      })
-    })
+//   }
+  
+//   }));
+//   }
+//   let feedData = await Feed.find({
+//     _id: feedId,
+//     userId,
+//     status: 1
+//   })
+//     .catch((error) => {
+//       console.log(error)
+//       return res.status(200).send({
+//         message: 'Something went wrong while getting feed',
+//         status: false,
+//         error: error
+//       })
+//     })
 
-  //update post count
+//   if (feedData.length > 0) {
 
-  var upsertData = {
-    $inc: {
-      noOfFeeds: -1,
-      noOfImages: (feedData.images.length * -1),
-      noOfVideos: (feedData.videos.length * -1),
-      noOfAudios:  (feedData.audios.length * -1),
-    }
-  };
+//     let updateData = await Feed.update({ _id: feedId }, {
+//         status : 0
+//     })
+//     .catch((error) => {
+//       console.log(error)
+//       return res.status(200).send({
+//         message: 'Something went wrong while deleting a feed',
+//         status: false,
+//         error: error
+//       })
+//     })
 
-await User.update({_id: userId}, upsertData)
-.catch((error) => {
-console.log(error)
-return res.status(200).send({
-  message: 'Something went wrong while incrementing no of feed',
-  status: false,
-  error: error
-})
-})
+//   //update post count
 
-   return res.send({
-      success: 1,
-      statusCode: 200,
-      message: 'You have deleted a feed successfully'
-    })
-  }else{
-    return res.send({
-      success: 0,
-      statusCode: 401,
-      message: 'Invalid feed'
-    })
-  }
-}
+//   var upsertData = {
+//     $inc: {
+//       noOfFeeds: -1,
+//       noOfImages: (feedData.images.length * -1),
+//       noOfVideos: (feedData.videos.length * -1),
+//       noOfAudios:  (feedData.audios.length * -1),
+//     }
+//   };
+
+// await User.update({_id: userId}, upsertData)
+// .catch((error) => {
+// console.log(error)
+// return res.status(200).send({
+//   message: 'Something went wrong while incrementing no of feed',
+//   status: false,
+//   error: error
+// })
+// })
+
+//    return res.send({
+//       success: 1,
+//       statusCode: 200,
+//       message: 'You have deleted a feed successfully'
+//     })
+//   }else{
+//     return res.send({
+//       success: 0,
+//       statusCode: 401,
+//       message: 'Invalid feed'
+//     })
+//   }
+// }
