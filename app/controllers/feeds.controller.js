@@ -342,6 +342,11 @@ exports.getYourFeeds = async (req,res) => {
     status : 1
   };
  let yourFeedData = await Feed.find(findCriteria)
+ .populate({ 
+  path  : 'userId',
+  select : '_id fullName profession image'
+  }
+)
  .limit(perPage)
  .skip(offset)
  .sort({
@@ -433,6 +438,11 @@ exports.getHomeFeeds = async (req, res) => {
     status : 1
   };
  let homeFeedData = await Feed.find(findCriteria)
+ .populate({ 
+  path  : 'userId',
+  select : '_id fullName profession image'
+  }
+)
  .limit(perPage)
  .skip(offset)
  .sort({
