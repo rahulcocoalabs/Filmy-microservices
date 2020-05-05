@@ -8,6 +8,9 @@ var feedsConfig = config.feeds;
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
+        console.log("------------req.files------------")
+        console.log(req.files)
+        console.log("---------------------------------")
      
         if (file.fieldname === "images"){
             cb(null, feedsConfig.imageUploadPath.trim());
@@ -38,7 +41,7 @@ module.exports = (app) => {
    app.get('/feeds',auth,feeds.getYourFeeds);
    app.get('/feeds/home',auth,feeds.getHomeFeeds);
    app.get('/feeds/albums',auth,feeds.getFeedsAlbum);
-   app.delete('/feeds/albums/:id',auth,feeds.deleteFeedsAlbum);
+//    app.delete('/feeds/albums/:id',auth,feeds.deleteFeedsAlbum);
 
    app.post('/feeds/add-comment',auth,feeds.addComment);
    app.get('/feeds/get-comment/:postId',auth,feeds.getComment);
