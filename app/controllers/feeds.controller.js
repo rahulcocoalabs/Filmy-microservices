@@ -15,6 +15,7 @@ exports.createFeed = async (req, res) => {
   var content = req.body.content;
   var files = req.files;
   console.log(" content : " + content  )
+  console.log(typeof content)
   if (!content & !req.files.images && !req.files.videos && !req.files.audios) {
     return res.send({
       success: 0,
