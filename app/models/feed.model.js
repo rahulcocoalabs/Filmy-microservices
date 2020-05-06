@@ -6,6 +6,12 @@ const FeedSchema = mongoose.Schema({
     images: Array,
     videos: Array,
     audios: Array,
+    emotions: [{
+        emotion: String,
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    }],
+    noOfComments : Number,
+    noOfLikes : Number,
     status: Number,
     tsCreatedAt: Number,
     tsModifiedAt: Number

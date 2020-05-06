@@ -26,18 +26,22 @@ module.exports = {
       imageUploadPath: '/var/www/html/filmy/common/uploads/feeds/images/',
       videoUploadPath: '/var/www/html/filmy/common/uploads/feeds/videos/',
       audioUploadPath: '/var/www/html/filmy/common/uploads/feeds/audios/',
+
       //  imageUploadPath: 'common/uploads/feeds/images/',
       // videoUploadPath: 'common/uploads/feeds/videos/',
       // audioUploadPath: 'common/uploads/feeds/audios/',
+
       // documentUploadPath: relativeCommonPath + "feeds/documents",
-      imageBase: commonPath + "/common/uploads/feeds/images/",
-      videoBase: commonPath + "/common/uploads/feeds/videos/",
-      audioBase: commonPath + "/common/uploads/feeds/audios/",
+      imageBase: commonPath + "common/uploads/feeds/images/",
+      videoBase: commonPath + "common/uploads/feeds/videos/",
+      audioBase: commonPath + "common/uploads/feeds/audios/",
       // documentBase: commonPath + "feeds/documents/",
       // documentImage: "http://trackflyvehicle.com/edunet-web/ftp/edunet-admin-portal/backend/img/pdf.png",
-      maxImageCount: 10,
-      maxVideoCount: 1,
+      maxImagesCount: 10,
+      maxVideosCount: 10,
       maxAudiosCount: 10,
+      emotionsList: ["love", "happy", "heartfilled", "surprise", "sad", "angry"]
 
-  }
+  },
+
 }
