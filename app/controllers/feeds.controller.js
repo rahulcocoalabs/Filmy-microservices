@@ -494,7 +494,7 @@ exports.deleteFeed = async (req, res) => {
   var userData = req.user;
   var userId = userData.id;
   var feedId = req.params.id;
-  let feedData = await Feed.find({
+  let feedData = await Feed.findOne({
     _id: feedId,
     userId,
     status: 1
@@ -508,7 +508,7 @@ exports.deleteFeed = async (req, res) => {
       })
     })
 
-  if (feedData.length > 0) {
+  if (feedData) {
     let updateData = await Feed.update({ _id: feedId }, {
       status: 0
     })
@@ -522,13 +522,24 @@ exports.deleteFeed = async (req, res) => {
       })
 
     //update post count
-
+    let imageCount = 0;
+    let videoCount = 0;
+    let audioCount = 0;
+    if(feedData.images){
+      imageCount = feedData.images.length;
+    }
+    if(feedData.videos){
+      videoCount = feedData.videos.length;
+    }
+    if(feedData.audios){
+      audioCount = feedData.audios.length;
+    }
     var upsertData = {
       $inc: {
         noOfFeeds: -1,
-        noOfImages: (feedData.images.length * -1),
-        noOfVideos: (feedData.videos.length * -1),
-        noOfAudios: (feedData.audios.length * -1),
+        noOfImages: (imageCount * -1),
+        noOfVideos: (videoCount* -1),
+        noOfAudios: (audioCount * -1),
       }
     };
 
