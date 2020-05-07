@@ -375,9 +375,9 @@ exports.getYourFeeds = async (req, res) => {
       success: 1,
       statusCode: 200,
       message: 'Feeds listed successfully',
-      imageBase: feedsConfig.imageBase,
-      videoBase: feedsConfig.videoBase,
-      audioBase: feedsConfig.audioBase,
+      // imageBase: feedsConfig.imageBase,
+      // videoBase: feedsConfig.videoBase,
+      // audioBase: feedsConfig.audioBase,
       items: yourFeedData,
       count: yourFeedsCount,
       totalPages,
@@ -472,9 +472,9 @@ exports.getHomeFeeds = async (req, res) => {
       success: 1,
       statusCode: 200,
       message: 'Feeds listed successfully',
-      imageBase: feedsConfig.imageBase,
-      videoBase: feedsConfig.videoBase,
-      audioBase: feedsConfig.audioBase,
+      // imageBase: feedsConfig.imageBase,
+      // videoBase: feedsConfig.videoBase,
+      // audioBase: feedsConfig.audioBase,
       items: homeFeedData,
       count: homeFeedsCount,
       totalPages,
@@ -525,20 +525,20 @@ exports.deleteFeed = async (req, res) => {
     let imageCount = 0;
     let videoCount = 0;
     let audioCount = 0;
-    if(feedData.images){
+    if (feedData.images) {
       imageCount = feedData.images.length;
     }
-    if(feedData.videos){
+    if (feedData.videos) {
       videoCount = feedData.videos.length;
     }
-    if(feedData.audios){
+    if (feedData.audios) {
       audioCount = feedData.audios.length;
     }
     var upsertData = {
       $inc: {
         noOfFeeds: -1,
         noOfImages: (imageCount * -1),
-        noOfVideos: (videoCount* -1),
+        noOfVideos: (videoCount * -1),
         noOfAudios: (audioCount * -1),
       }
     };
@@ -569,18 +569,19 @@ exports.deleteFeed = async (req, res) => {
 
 
 
-exports.addComment = (req, res) => {
+exports.addComment = async (req, res) => {
   console.log('in add comment');
-  var userData = req.user.data;
+  var userData = req.user;
   var userId = userData.id;
-  var postId = req.body.postId;
+  var feedId = req.body.feedId;
+  var commentId = req.body.commentId;
   var comment = req.body.comment;
-  var isValidId = ObjectId.isValid(postId);
-  if (!postId) {
+  var isValidId = ObjectId.isValid(feedId);
+  if (!feedId) {
     return res.send({
       success: 0,
       statusCode: 401,
-      message: 'PostId missing'
+      message: 'FeedId missing'
     })
   };
   if (!isValidId) {
@@ -588,52 +589,159 @@ exports.addComment = (req, res) => {
       success: 0,
       status: 401,
       errors: {
-        field: "id",
-        message: "id is invalid"
+        field: "feedId",
+        message: "feedId is invalid"
       }
     }
     res.send(responseObj);
     return;
   }
-  var newComments = new Comments({
-    userId: userId,
-    postId: postId,
-    comment: comment,
-    status: 1,
-    tsCreatedAt: Number(moment().unix()),
-    tsModifiedAt: null
-  });
+  var filters = {
+    _id: feedId,
+    status: 1
+  };
+  var queryProjection = {
+    commentsIds: 1,
+    _id : 1
+  }
+  let feedData = await Feed.findOne(filters, queryProjection)
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while getting feeds data',
+        status: false,
+        error: error
+      })
+    })
 
-  newComments.save().then(commentsData => {
-    res.send({
+  if (feedData) {
+    if (commentId) {
+      var filters = {
+        _id: commentId,
+        status: 1
+      };
+      var queryProjection = {
+        replies: 1,
+        _id : 1
+      }
+      let commentData = await Comments.findOne(filters, queryProjection)
+        .catch((error) => {
+          console.log(error)
+          return res.status(200).send({
+            message: 'Something went wrong while getting comment',
+            status: false,
+            error: error
+          })
+        })
+        var replies = [];
+     replies = commentData.replies;
+    replies.push({
+      comment,
+      userId,
+      status : 1,
+      tsCreatedAt: Number(moment().unix()),
+      tsModifiedAt: null
+    })
+    var updateData = {
+  replies
+   };
+
+   await Comments.update({ _id: commentId }, updateData)
+     .catch((error) => {
+       console.log(error)
+       return res.status(200).send({
+         message: 'Something went wrong while reply update',
+         status: false,
+         error: error
+       })
+     })
+
+        return  res.send({
+          success: 1,
+          statusCode: 200,
+          message: 'Comments added successfully'
+        })
+    
+      
+
+  } else {
+
+    var newComments = new Comments({
+      userId,
+      feedId,
+      comment: comment,
+      replies: [],
+      status: 1,
+      tsCreatedAt: Number(moment().unix()),
+      tsModifiedAt: null
+    });
+
+    let data = await newComments.save()
+      .catch(err => {
+        res.send({
+          success: 0,
+          statusCode: 500,
+          message: err.message
+        })
+      })
+      console.log("data._id")
+      console.log(data._id)
+      console.log("data._id")
+      var upsertData = {
+         $push: { commentsIds: data._id } ,
+        $inc: {
+          noOfComments: 1,
+        }
+      };
+  
+      await Feed.update({ _id: feedId }, upsertData)
+        .catch((error) => {
+          console.log(error)
+          return res.status(200).send({
+            message: 'Something went wrong while incrementing no of comments count',
+            status: false,
+            error: error
+          })
+        })
+
+   return  res.send({
       success: 1,
       statusCode: 200,
       message: 'Comments added successfully'
     })
-  }).catch(err => {
-    res.send({
-      success: 0,
-      statusCode: 500,
-      message: err.message
-    })
+
+  }
+
+}else{
+  return res.send({
+    success: 0,
+    statusCode: 401,
+    message: 'Invalid feed'
   })
+}
 
 };
 
-exports.getComment = (req, res) => {
-  var postId = req.params.postId;
-  var findCriteria = {
-    postId: postId
-  };
-  Comments.find(findCriteria).then(comments => {
-    res.send({
-      success: 1,
-      statusCode: 200,
-      items: comments,
-      message: 'Comments listed successfully'
-    })
-  })
-};
+exports.getComment = async(req,res) =>{
+  
+}
+
+
+
+// exports.getComment = (req, res) => {
+//   var postId = req.params.postId;
+//   var findCriteria = {
+//     postId: postId
+//   };
+//   Comments.find(findCriteria).then(comments => {
+//     res.send({
+//       success: 1,
+//       statusCode: 200,
+//       items: comments,
+//       message: 'Comments listed successfully'
+//     })
+//   })
+// };
 // }
 
 // module.exports = feedsController;
@@ -666,7 +774,7 @@ exports.getFeedsAlbum = async (req, res) => {
     if (params.type === constants.ALBUM_IMAGE) {
       let imageData = await Feed.aggregate([
         { $match: { userId: ObjectId(userId), status: 1 } },
-        // { $unwind : "$images" } ,
+        { $unwind : "$images" } ,
         // { $limit : perPage},{ $skip : offset },
 
         { $project: { _id: 0, 'feedId': '$_id', 'image': '$images.fileName' } },
@@ -1049,57 +1157,57 @@ exports.removeEmotionFromFeed = async (req, res) => {
         error: error
       })
     })
-    if(feedData){
-  var emotions = feedData.emotions;
-  if (emotions.length > 0) {
-    pos = emotions.map(function (e) { return e.userId; }).indexOf(userId);
-    if (pos > -1) {
-      emotions.splice(pos, 1);
+  if (feedData) {
+    var emotions = feedData.emotions;
+    if (emotions.length > 0) {
+      pos = emotions.map(function (e) { return e.userId; }).indexOf(userId);
+      if (pos > -1) {
+        emotions.splice(pos, 1);
 
-      var  updateData = {
+        var updateData = {
           $inc: {
             noOfLikes: -1
           },
           emotions
         };
-  
-  
-      await Feed.update({ _id: feedId }, updateData)
-        .catch((error) => {
-          console.log(error)
-          return res.status(200).send({
-            message: 'Something went wrong while remove emotion',
-            status: false,
-            error: error
+
+
+        await Feed.update({ _id: feedId }, updateData)
+          .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+              message: 'Something went wrong while remove emotion',
+              status: false,
+              error: error
+            })
           })
+
+        responseObj = {
+          success: 1,
+          message: "Emotion removed..."
+        };
+        res.send(responseObj);
+        return;
+
+
+      } else {
+        return res.status(200).send({
+          message: 'No emotion found',
+          status: false,
         })
-  
-      responseObj = {
-        success: 1,
-        message: "Emotion removed..."
-      };
-      res.send(responseObj);
-      return;
-
-
+      }
     } else {
       return res.status(200).send({
-        message: 'No emotion found',
+        message: 'No emotions in this feed',
         status: false,
       })
     }
   } else {
     return res.status(200).send({
-      message: 'No emotions in this feed',
+      message: 'Invalid feed',
       status: false,
     })
   }
-}else{
-  return res.status(200).send({
-    message: 'Invalid feed',
-    status: false,
-  })
-}
 
 }
 
