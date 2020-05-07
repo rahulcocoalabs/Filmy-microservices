@@ -9,6 +9,7 @@
   const crypto = require('crypto');
   const sgMail = require('@sendgrid/mail');
   var SENDGRID_APY_KEY = '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';
+  var feedsConfig = config.feeds;
 
   var bcrypt = require('bcryptjs');
   const salt = bcrypt.genSaltSync(10);
@@ -183,6 +184,9 @@
         statusCode: 200,
         token: token,
         userDetails: payload,
+        imageBase: feedsConfig.imageBase,
+        videoBase: feedsConfig.videoBase,
+        audioBase: feedsConfig.audioBase,
         message: 'Successfully logged in'
       })
     }else{
