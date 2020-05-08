@@ -64,7 +64,7 @@
       if (user) {
         return res.send({
           success: 0,
-          statusCode: 401,
+          statusCode: 400,
           message: 'User exists, try with another email id'
         })
       }
@@ -145,7 +145,7 @@
       if (!data) {
         return res.send({
           success: 0,
-          statusCode: 401,
+          statusCode: 400,
           message: 'Incorrect credentials'
         })
       };
@@ -217,7 +217,7 @@
         if (!user) {
           return res.send({
             success: 0,
-            statusCode: 401,
+            statusCode: 400,
             message: 'The email address ' + email + ' is not associated with any account. Double-check your email address and try again.'
           })
         };
@@ -283,7 +283,7 @@
       })
       .then((user) => {
         if (!user) {
-          return res.status(401).json({
+          return res.status(400).json({
             message: 'Password reset token is invalid or has expired.'
           });
         }
@@ -311,7 +311,7 @@
       })
       .then((user) => {
         if (!user) {
-          return res.status(401).json({
+          return res.status(400).json({
             success: 0,
             message: 'Password reset token is invalid or has expired.'
           });

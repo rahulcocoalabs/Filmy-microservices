@@ -16,7 +16,7 @@ exports.createFeed = async (req, res) => {
   if (!content & !req.files.images && !req.files.videos && !req.files.audios) {
     return res.send({
       success: 0,
-      statusCode: 401,
+      statusCode: 400,
       message: 'Feed cannot be empty'
     })
   };
@@ -147,7 +147,7 @@ exports.updateFeed = async (req, res) => {
   if (!content && !req.files) {
     return res.send({
       success: 0,
-      statusCode: 401,
+      statusCode: 400,
       message: 'Nothing to update'
     })
   };
@@ -293,7 +293,7 @@ exports.updateFeed = async (req, res) => {
     } else {
       return res.send({
         success: 0,
-        statusCode: 401,
+        statusCode: 400,
         message: 'Its not your feed'
       })
     }
@@ -301,7 +301,7 @@ exports.updateFeed = async (req, res) => {
   } else {
     return res.send({
       success: 0,
-      statusCode: 401,
+      statusCode: 400,
       message: 'Invalid feed'
     })
   }
@@ -386,7 +386,7 @@ exports.getYourFeeds = async (req, res) => {
   } else {
     return res.send({
       success: 0,
-      statusCode: 401,
+      statusCode: 400,
       message: 'Invalid user'
     })
   }
@@ -483,7 +483,7 @@ exports.getHomeFeeds = async (req, res) => {
   } else {
     return res.send({
       success: 0,
-      statusCode: 401,
+      statusCode: 400,
       message: 'Invalid user'
     })
   }
@@ -561,7 +561,7 @@ exports.deleteFeed = async (req, res) => {
   } else {
     return res.send({
       success: 0,
-      statusCode: 401,
+      statusCode: 400,
       message: 'Invalid feed'
     })
   }
@@ -576,18 +576,37 @@ exports.addComment = async (req, res) => {
   var feedId = req.body.feedId;
   var commentId = req.body.commentId;
   var comment = req.body.comment;
-  var isValidId = ObjectId.isValid(feedId);
-  if (!feedId) {
+
+  if (!feedId || !comment) {
+    var errors = [];
+
+    if (!feedId) {
+      errors.push({
+        field: "feedId",
+        message: 'Require feedId'
+
+      });
+    }
+    if (!comment) {
+      errors.push({
+        field: "comment",
+        message: 'Require comment'
+      });
+    }
+
     return res.send({
       success: 0,
-      statusCode: 401,
-      message: 'FeedId missing'
-    })
+      statusCode: 400,
+      errors: errors,
+    });
   };
+
+  var isValidId = ObjectId.isValid(feedId);
+
   if (!isValidId) {
     var responseObj = {
       success: 0,
-      status: 401,
+      status: 400,
       errors: {
         field: "feedId",
         message: "feedId is invalid"
@@ -602,7 +621,7 @@ exports.addComment = async (req, res) => {
   };
   var queryProjection = {
     commentsIds: 1,
-    _id : 1
+    _id: 1
   }
   let feedData = await Feed.findOne(filters, queryProjection)
     .catch((error) => {
@@ -618,11 +637,12 @@ exports.addComment = async (req, res) => {
     if (commentId) {
       var filters = {
         _id: commentId,
+        type: constants.FEED_COMMENT,
         status: 1
       };
       var queryProjection = {
         replies: 1,
-        _id : 1
+        _id: 1
       }
       let commentData = await Comments.findOne(filters, queryProjection)
         .catch((error) => {
@@ -633,68 +653,70 @@ exports.addComment = async (req, res) => {
             error: error
           })
         })
-        var replies = [];
-     replies = commentData.replies;
-    replies.push({
-      comment,
-      userId,
-      status : 1,
-      tsCreatedAt: Number(moment().unix()),
-      tsModifiedAt: null
-    })
-    var updateData = {
-  replies
-   };
-
-   await Comments.update({ _id: commentId }, updateData)
-     .catch((error) => {
-       console.log(error)
-       return res.status(200).send({
-         message: 'Something went wrong while reply update',
-         status: false,
-         error: error
-       })
-     })
-
-        return  res.send({
-          success: 1,
-          statusCode: 200,
-          message: 'Comments added successfully'
-        })
-    
-      
-
-  } else {
-
-    var newComments = new Comments({
-      userId,
-      feedId,
-      comment: comment,
-      replies: [],
-      status: 1,
-      tsCreatedAt: Number(moment().unix()),
-      tsModifiedAt: null
-    });
-
-    let data = await newComments.save()
-      .catch(err => {
-        res.send({
-          success: 0,
-          statusCode: 500,
-          message: err.message
-        })
+      var replies = [];
+      replies = commentData.replies;
+      replies.push({
+        comment,
+        userId,
+        status: 1,
+        tsCreatedAt: Number(moment().unix()),
+        tsModifiedAt: null
       })
+      var updateData = {
+        replies
+      };
+
+
+      await Comments.update({ _id: commentId, type: constants.FEED_COMMENT }, updateData)
+        .catch((error) => {
+          console.log(error)
+          return res.status(200).send({
+            message: 'Something went wrong while reply update',
+            status: false,
+            error: error
+          })
+        })
+
+      return res.send({
+        success: 1,
+        statusCode: 200,
+        message: 'Comments added successfully'
+      })
+
+
+
+    } else {
+
+      var newComments = new Comments({
+        userId,
+        feedId,
+        type: constants.FEED_COMMENT,
+        comment: comment,
+        replies: [],
+        status: 1,
+        tsCreatedAt: Number(moment().unix()),
+        tsModifiedAt: null
+      });
+
+      let data = await newComments.save()
+        .catch(err => {
+          res.send({
+            success: 0,
+            statusCode: 500,
+            message: err.message
+          })
+        })
       console.log("data._id")
       console.log(data._id)
       console.log("data._id")
       var upsertData = {
-         $push: { commentsIds: data._id } ,
+        $push: { commentsIds: data._id },
         $inc: {
           noOfComments: 1,
         }
       };
-  
-      await Feed.update({ _id: feedId }, upsertData)
+
+      await Feed.update({ _id: feedId, status: 1 }, upsertData)
         .catch((error) => {
           console.log(error)
           return res.status(200).send({
@@ -704,29 +726,203 @@ exports.addComment = async (req, res) => {
           })
         })
 
-   return  res.send({
-      success: 1,
-      statusCode: 200,
-      message: 'Comments added successfully'
+      return res.send({
+        success: 1,
+        statusCode: 200,
+        message: 'Comments added successfully'
+      })
+
+    }
+
+  } else {
+    return res.send({
+      success: 0,
+      statusCode: 400,
+      message: 'Invalid feed'
     })
-
   }
-
-}else{
-  return res.send({
-    success: 0,
-    statusCode: 401,
-    message: 'Invalid feed'
-  })
-}
 
 };
 
-exports.getComment = async(req,res) =>{
-  
+exports.updateComment = async (req, res) => {
+  var userData = req.user;
+  var userId = userData.id;
+  var feedId = req.body.feedId;
+  let commentId = req.params.id;
+  var replyCommentId = req.body.replyCommentId;
+  var comment = req.body.comment;
+
+  let update = {};
+
+  if (!comment) {
+    return res.send({
+      success: 0,
+      message: 'Nothing to update'
+    })
+  }
+
+  var isValidFeedId = ObjectId.isValid(feedId);
+  var isValidCommentId = ObjectId.isValid(commentId);
+
+  if (!isValidFeedId || !isValidCommentId) {
+    var errors = [];
+
+    if (!isValidFeedId) {
+      errors.push({
+        field: "feedId",
+        message: 'Invalid feedId'
+
+      });
+    }
+    if (!isValidCommentId) {
+      errors.push({
+        field: "commentId",
+        message: 'Invalid commentId'
+      });
+    }
+    if (commentId && replyCommentId) {
+      var isValidReplyCommentId = ObjectId.isValid(replyCommentId);
+      if (!isValidReplyCommentId) {
+        errors.push({
+          field: "replyCommentId",
+          message: 'Invalid replyCommentId'
+        });
+      }
+    }
+    return res.send({
+      success: 0,
+      statusCode: 400,
+      errors: errors,
+    });
+  }
+
+  var filters = {
+    _id: feedId,
+    status: 1
+  };
+  var queryProjection = {
+    commentsIds: 1,
+    _id: 1
+  }
+  let feedData = await Feed.findOne(filters, queryProjection)
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while getting feeds data',
+        status: false,
+        error: error
+      })
+    })
+  if (feedData) {
+
+    var filters = {
+      _id: commentId,
+      userId,
+      type: constants.FEED_COMMENT,
+      status: 1
+    };
+    var queryProjection = {
+      comment: 1,
+      replies: 1,
+      _id: 1
+    }
+    let commentData = await Comments.findOne(filters, queryProjection)
+      .catch((error) => {
+        console.log(error)
+        return res.status(200).send({
+          message: 'Something went wrong while getting feeds data',
+          status: false,
+          error: error
+        })
+      })
+    if (commentData) {
+      if (replyCommentId) {
+        var replies = [];
+        replies = commentData.replies;
+        pos = replies.map(function (e) { return e._id; }).indexOf(replyCommentId);
+        if(pos > -1){
+          replies[pos].comment = comment;
+          replies[pos].tsModifiedAt = Number(moment().unix());
+          var updateComment = {};
+          updateComment.replies = replies;
+    
+          await Comments.update({
+            _id: commentId,
+            type: constants.FEED_COMMENT,
+            status: 1
+          }, updateComment,
+        
+          )
+            .catch((error) => {
+              console.log(error)
+              return res.status(200).send({
+                message: 'Something went wrong while updating comment',
+                status: false,
+                error: error
+              })
+            })
+            return res.send({
+              success: 1,
+              statusCode: 200,
+              message: 'Reply comment updated successfully'
+            })
+
+
+        } else{
+          return res.send({
+            success: 0,
+            statusCode: 400,
+            message: 'Reply comment not exists'
+          })
+        }   
+
+      } else {
+        var updateComment = {
+          comment,
+          tsModifiedAt : Number(moment().unix())
+        };
+
+        await Comments.update({
+          _id: commentId,
+          userId,
+          type: constants.FEED_COMMENT,
+          status: 1
+        }, updateComment)
+          .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+              message: 'Something went wrong while updating comment',
+              status: false,
+              error: error
+            })
+          })
+          return res.send({
+            success: 1,
+            statusCode: 200,
+            message: 'Comments updated successfully'
+          })
+
+      }
+
+    } else {
+      return res.send({
+        success: 0,
+        statusCode: 400,
+        message: 'Invalid comment'
+      })
+    }
+
+
+
+  } else {
+    return res.send({
+      success: 0,
+      statusCode: 400,
+      message: 'Invalid feed'
+    })
+  }
+
 }
-
-
 
 // exports.getComment = (req, res) => {
 //   var postId = req.params.postId;
@@ -774,7 +970,7 @@ exports.getFeedsAlbum = async (req, res) => {
     if (params.type === constants.ALBUM_IMAGE) {
       let imageData = await Feed.aggregate([
         { $match: { userId: ObjectId(userId), status: 1 } },
-        { $unwind : "$images" } ,
+        { $unwind: "$images" },
         // { $limit : perPage},{ $skip : offset },
 
         { $project: { _id: 0, 'feedId': '$_id', 'image': '$images.fileName' } },
@@ -973,7 +1169,7 @@ exports.getFeedsAlbum = async (req, res) => {
 //   }else{
 //     return res.send({
 //       success: 0,
-//       statusCode: 401,
+//       statusCode: 400,
 //       message: 'Invalid feed'
 //     })
 //   }

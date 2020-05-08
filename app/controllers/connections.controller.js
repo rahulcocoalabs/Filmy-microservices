@@ -15,7 +15,7 @@
         if (!isValidId) {
             var responseObj = {
                 success: 0,
-                status: 401,
+                status: 400,
                 errors: [{
                     field: "id",
                     message: "receiverUserId is invalid"
@@ -42,14 +42,14 @@
             if (senderData === null) {
                 return res.send({
                     success: 0,
-                    statusCode: 401,
+                    statusCode: 400,
                     message: "Invalid follower"
                 })
             }
             if (receiverData === null) {
                 return res.send({
                     success: 0,
-                    statusCode: 401,
+                    statusCode: 400,
                     message: "Invalid followee"
 
                 })
@@ -60,7 +60,7 @@
                 if (id) {
                     return res.send({
                         success: 0,
-                        statusCode: 401,
+                        statusCode: 400,
                         message: 'Already followed ' + receiverData.fullName
                     })
                 } else {
@@ -81,7 +81,7 @@
                 if (!id) {
                     return res.send({
                         success: 0,
-                        statusCode: 401,
+                        statusCode: 400,
                         message: 'Already unfollowed ' + receiverData.fullName
                     })
                 } else {
@@ -102,7 +102,7 @@
             responseObj = {
                 message: "Invalid connection status ",
                 success: 0,
-                statusCode: 401,
+                statusCode: 400,
 
             }
             return res.send(responseObj);

@@ -10,6 +10,7 @@ const FeedSchema = mongoose.Schema({
         emotion: String,
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
     }],
+    commentsIds: Array,
     noOfComments : Number,
     noOfLikes : Number,
     status: Number,

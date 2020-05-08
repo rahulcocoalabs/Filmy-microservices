@@ -9,4 +9,7 @@ module.exports = Object.freeze({
 
     FOLLOWER_SEARCH : "follower",
     FOLLOWING_SEARCH : "following",
+
+    FEED_COMMENT : "feed",
+    ARTICLE_COMMENT : "article",
 });

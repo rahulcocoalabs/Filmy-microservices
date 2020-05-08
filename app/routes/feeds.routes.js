@@ -43,6 +43,6 @@ module.exports = (app) => {
    app.post('/feeds/emotion',auth,feeds.addEmotionToFeed);
    app.delete('/feeds/emotion/:id',auth,feeds.removeEmotionFromFeed);
 
-   app.post('/feeds/add-comment',auth,feeds.addComment);
-   app.get('/feeds/get-comment/:postId',auth,feeds.getComment);
+   app.post('/feeds/comment',auth,feeds.addComment);
+   app.patch('/feeds/comment/:id',auth,feeds.updateComment);
 }

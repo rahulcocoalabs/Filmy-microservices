@@ -1,10 +1,18 @@
 const mongoose = require('mongoose');
 
 const CommentsSchema = mongoose.Schema({
-    postId: { type: mongoose.Schema.Types.ObjectId, ref: 'Post'},
-    parentCommentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Comment'},
+    feedId: { type: mongoose.Schema.Types.ObjectId, ref: 'Feed'},
+    // parentCommentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Comment'},
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+    type:String,
     comment: String,
+    replies: [{
+        comment: String,
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        status: Number,
+        tsCreatedAt: Number,
+        tsModifiedAt: Number
+    }],
     status: Number,
     tsCreatedAt: Number,
     tsModifiedAt: Number
