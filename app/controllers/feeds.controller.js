@@ -677,6 +677,22 @@ exports.addComment = async (req, res) => {
           })
         })
 
+        var upsertData = {
+          $inc: {
+            noOfComments: 1,
+          }
+        };
+  
+        await Feed.update({ _id: feedId, status: 1 }, upsertData)
+          .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+              message: 'Something went wrong while incrementing no of comments count',
+              status: false,
+              error: error
+            })
+          })
+
       return res.send({
         success: 1,
         statusCode: 200,
@@ -840,18 +856,18 @@ exports.updateComment = async (req, res) => {
         var replies = [];
         replies = commentData.replies;
         pos = replies.map(function (e) { return e._id; }).indexOf(replyCommentId);
-        if(pos > -1){
+        if (pos > -1) {
           replies[pos].comment = comment;
           replies[pos].tsModifiedAt = Number(moment().unix());
           var updateComment = {};
           updateComment.replies = replies;
-    
+
           await Comments.update({
             _id: commentId,
             type: constants.FEED_COMMENT,
             status: 1
           }, updateComment,
-        
+
           )
             .catch((error) => {
               console.log(error)
@@ -861,25 +877,25 @@ exports.updateComment = async (req, res) => {
                 error: error
               })
             })
-            return res.send({
-              success: 1,
-              statusCode: 200,
-              message: 'Reply comment updated successfully'
-            })
+          return res.send({
+            success: 1,
+            statusCode: 200,
+            message: 'Reply comment updated successfully'
+          })
 
 
-        } else{
+        } else {
           return res.send({
             success: 0,
             statusCode: 400,
             message: 'Reply comment not exists'
           })
-        }   
+        }
 
       } else {
         var updateComment = {
           comment,
-          tsModifiedAt : Number(moment().unix())
+          tsModifiedAt: Number(moment().unix())
         };
 
         await Comments.update({
@@ -896,11 +912,11 @@ exports.updateComment = async (req, res) => {
               error: error
             })
           })
-          return res.send({
-            success: 1,
-            statusCode: 200,
-            message: 'Comments updated successfully'
-          })
+        return res.send({
+          success: 1,
+          statusCode: 200,
+          message: 'Comments updated successfully'
+        })
 
       }
 
@@ -922,6 +938,233 @@ exports.updateComment = async (req, res) => {
     })
   }
 
+}
+
+exports.deleteComment = async (req, res) => {
+  var userData = req.user;
+  var userId = userData.id;
+  var feedId = req.body.feedId;
+  let commentId = req.params.id;
+  var replyCommentId = req.body.replyCommentId;
+
+  var isValidFeedId = ObjectId.isValid(feedId);
+  var isValidCommentId = ObjectId.isValid(commentId);
+
+  if (!isValidFeedId || !isValidCommentId) {
+    var errors = [];
+
+    if (!isValidFeedId) {
+      errors.push({
+        field: "feedId",
+        message: 'Invalid feedId'
+
+      });
+    }
+    if (!isValidCommentId) {
+      errors.push({
+        field: "commentId",
+        message: 'Invalid commentId'
+      });
+    }
+    if (commentId && replyCommentId) {
+      var isValidReplyCommentId = ObjectId.isValid(replyCommentId);
+      if (!isValidReplyCommentId) {
+        errors.push({
+          field: "replyCommentId",
+          message: 'Invalid replyCommentId'
+        });
+      }
+    }
+    return res.send({
+      success: 0,
+      statusCode: 400,
+      errors: errors,
+    });
+  }
+
+  var filters = {
+    _id: feedId,
+    status: 1
+  };
+  var queryProjection = {
+    commentsIds: 1,
+    userId,
+    _id: 1
+  }
+  let feedData = await Feed.findOne(filters, queryProjection)
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while getting feeds data',
+        status: false,
+        error: error
+      })
+    })
+  if (feedData) {
+    var filters = {};
+    let authorUserId = feedData.userId;
+    filters = {
+      _id: commentId,
+      // userId,
+      type: constants.FEED_COMMENT,
+      status: 1
+    };
+    if(userId !== authorUserId){
+      filters.userId = userId
+    }
+    var queryProjection = {
+      comment: 1,
+      replies: 1,
+      _id: 1
+    }
+    let commentData = await Comments.findOne(filters, queryProjection)
+      .catch((error) => {
+        console.log(error)
+        return res.status(200).send({
+          message: 'Something went wrong while getting feeds data',
+          status: false,
+          error: error
+        })
+      })
+    if (commentData) {
+      if(replyCommentId){
+        var replies = [];
+        replies = commentData.replies;
+        pos = replies.map(function (e) { return e._id; }).indexOf(replyCommentId);
+        if (pos > -1) {
+          if(replies[pos].status === 1){
+            replies[pos].status = 0;
+            replies[pos].tsModifiedAt = Number(moment().unix());
+            var updateComment = {};
+            updateComment.replies = replies;
+  
+            await Comments.update({
+              _id: commentId,
+              type: constants.FEED_COMMENT,
+              status: 1
+            }, updateComment,
+  
+            )
+              .catch((error) => {
+                console.log(error)
+                return res.status(200).send({
+                  message: 'Something went wrong while updating comment',
+                  status: false,
+                  error: error
+                })
+              })
+
+              var upsertData = {
+                $inc: {
+                  noOfComments: -1,
+                }
+              };
+        
+              await Feed.update({ _id: feedId, status: 1 }, upsertData)
+                .catch((error) => {
+                  console.log(error)
+                  return res.status(200).send({
+                    message: 'Something went wrong while incrementing no of comments count',
+                    status: false,
+                    error: error
+                  })
+                })
+
+
+            return res.send({
+              success: 1,
+              statusCode: 200,
+              message: 'Reply comment deleted successfully'
+            })
+  
+            
+          }else{
+            return res.send({
+              success: 0,
+              statusCode: 400,
+              message: 'Reply comment already deleted'
+            })
+          }
+        } else {
+          return res.send({
+            success: 0,
+            statusCode: 400,
+            message: 'Reply comment not exists'
+          })
+        }
+      }else{
+
+        var updateComment = {};
+        updateComment.status = 0;
+        updateComment.tsModifiedAt = Number(moment().unix());
+        await Comments.update({
+          _id: commentId,
+          type: constants.FEED_COMMENT,
+          status: 1
+        }, updateComment,
+
+        )
+          .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+              message: 'Something went wrong while updating comment',
+              status: false,
+              error: error
+            })
+          })
+         let commentsIds = feedData.commentsIds;
+         pos = commentsIds.map(function (id) { return id; }).indexOf(commentId);
+         if (pos > -1) {
+           commentsIds.splice(pos,1);
+          var updateData = {
+            $inc: {
+              noOfComments: -1,
+            },
+            commentsIds
+          };
+    
+          await Feed.update({ _id: feedId, status: 1 }, updateData)
+            .catch((error) => {
+              console.log(error)
+              return res.status(200).send({
+                message: 'Something went wrong while incrementing no of comments count',
+                status: false,
+                error: error
+              })
+            })
+            return res.send({
+              success: 1,
+              statusCode: 200,
+              message: 'Comment deleted successfully'
+            })
+          }else{
+            return res.send({
+              success: 1,
+              statusCode: 200,
+              message: 'Comment already deleted successfully'
+            })
+          }
+
+    
+
+
+
+      }
+    } else {
+      return res.send({
+        success: 0,
+        statusCode: 400,
+        message: 'Invalid comment'
+      })
+    }
+
+  } else {
+    return res.send({
+      success: 0,
+      statusCode: 400,
+      message: 'Invalid feed'
+    })
+  }
 }
 
 // exports.getComment = (req, res) => {

@@ -45,4 +45,5 @@ module.exports = (app) => {
 
    app.post('/feeds/comment',auth,feeds.addComment);
    app.patch('/feeds/comment/:id',auth,feeds.updateComment);
+   app.delete('/feeds/comment/:id',auth,feeds.deleteComment);
 }
