@@ -12,4 +12,6 @@ module.exports = Object.freeze({
 
     FEED_COMMENT : "feed",
     ARTICLE_COMMENT : "article",
+
+    UNLIKE_STATUS : "unlike"
 });

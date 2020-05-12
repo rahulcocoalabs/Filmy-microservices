@@ -41,6 +41,8 @@ module.exports = (app) => {
    app.delete('/feeds/albums/delete',auth,feeds.deleteFeedsAlbum);
 //    app.delete('/feeds/albums/:id',auth,feeds.deleteFeedsAlbum);
 
+
+
    app.post('/feeds/emotion',auth,feeds.addEmotionToFeed);
    app.delete('/feeds/emotion/:id',auth,feeds.removeEmotionFromFeed);
 

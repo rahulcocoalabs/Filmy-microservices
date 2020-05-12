@@ -1691,6 +1691,7 @@ exports.addEmotionToFeed = async (req, res) => {
       message: "feedId cannot be empty"
     });
   }
+  if(params.emotion !== constants.UNLIKE_STATUS){
   if (params.emotion) {
     if (!isInArray(params.emotion, feedsConfig.emotionsList)) {
       errors.push({
@@ -1795,6 +1796,78 @@ exports.addEmotionToFeed = async (req, res) => {
       status: false,
     })
   }
+}else{
+
+  var filters = {
+    _id: params.feedId.trim(),
+    status: 1
+  };
+  var queryProjection = {
+    emotions: 1
+  }
+  let feedData = await Feed.findOne(filters, queryProjection)
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while getting feeds data',
+        status: false,
+        error: error
+      })
+    })
+  if (feedData) {
+    var emotions = feedData.emotions;
+    if (emotions.length > 0) {
+      pos = emotions.map(function (e) { return e.userId; }).indexOf(userId);
+      if (pos > -1) {
+        emotions.splice(pos, 1);
+
+        var updateData = {
+          $inc: {
+            noOfLikes: -1
+          },
+          emotions
+        };
+
+
+        await Feed.update({ _id: params.feedId }, updateData)
+          .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+              message: 'Something went wrong while remove emotion',
+              status: false,
+              error: error
+            })
+          })
+
+        responseObj = {
+          success: 1,
+          message: "Emotion removed..."
+        };
+        res.send(responseObj);
+        return;
+
+
+      } else {
+        return res.status(200).send({
+          message: 'No emotion found',
+          status: false,
+        })
+      }
+    } else {
+      return res.status(200).send({
+        message: 'No emotions in this feed',
+        status: false,
+      })
+    }
+  } else {
+    return res.status(200).send({
+      message: 'Invalid feed',
+      status: false,
+    })
+  }
+
+
+}
 }
 
 exports.removeEmotionFromFeed = async (req, res) => {
