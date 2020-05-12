@@ -1453,12 +1453,12 @@ exports.getFeedsAlbum = async (req, res) => {
 exports.deleteFeedsAlbum = async (req, res) => {
   var userData = req.user;
   var userId = userData.id;
-  var feedId = req.body.feedId;
-  var type = req.body.type;
-  var fileName = req.body.fileName;
-  console.log("req.body")
-  console.log(req.body)
-  console.log("req.body")
+  var feedId = req.query.feedId;
+  var type = req.query.type;
+  var fileName = req.query.fileName;
+  console.log("req.query")
+  console.log(req.query)
+  console.log("req.query")
   if (!type || !feedId || !fileName) {
     //validating request
     var errors = [];
@@ -1521,7 +1521,7 @@ exports.deleteFeedsAlbum = async (req, res) => {
     if (type === constants.ALBUM_IMAGE) {
 
 
-      pos = images.map(function (e) { return e.fileName; }).indexOf(fileName);
+      pos = images.map(function (e) { return e.fileName; }).indexOf(fileName.trim());
       if (pos > -1) {
         images.splice(pos, 1);
 
@@ -1576,7 +1576,7 @@ exports.deleteFeedsAlbum = async (req, res) => {
         })
       }
     } else if (type === constants.ALBUM_VIDEO) {
-      pos = videos.map(function (e) { return e.fileName; }).indexOf(fileName);
+      pos = videos.map(function (e) { return e.fileName; }).indexOf(fileName.trim());
       if (pos > -1) {
         videos.splice(pos, 1);
 
@@ -1634,7 +1634,7 @@ exports.deleteFeedsAlbum = async (req, res) => {
 
 
     } else if (type === constants.ALBUM_AUDIO) {
-      pos = audios.map(function (e) { return e.fileName; }).indexOf(fileName);
+      pos = audios.map(function (e) { return e.fileName; }).indexOf(fileName.trim());
       if (pos > -1) {
         audios.splice(pos, 1);
 
