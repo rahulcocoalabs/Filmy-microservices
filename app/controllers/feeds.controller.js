@@ -1456,6 +1456,9 @@ exports.deleteFeedsAlbum = async (req, res) => {
   var feedId = req.body.feedId;
   var type = req.body.type;
   var fileName = req.body.fileName;
+  console.log("req.body")
+  console.log(req.body)
+  console.log("req.body")
   if (!type || !feedId || !fileName) {
     //validating request
     var errors = [];
