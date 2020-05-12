@@ -1,5 +1,14 @@
 const mongoose = require('mongoose');
-
+var options = {
+    toObject: {
+        virtuals: true,
+   
+    },
+    toJSON: {
+        virtuals: true,
+     
+    }
+}
 const FeedSchema = mongoose.Schema({
     content: String,
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
@@ -17,5 +26,8 @@ const FeedSchema = mongoose.Schema({
     tsCreatedAt: Number,
     tsModifiedAt: Number
 
-});
+},options);
+FeedSchema.virtual('yourEmotion').get(function () {
+    return "";
+  });
 module.exports = mongoose.model('Feed', FeedSchema, 'Feeds');

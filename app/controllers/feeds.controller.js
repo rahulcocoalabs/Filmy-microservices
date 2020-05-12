@@ -368,6 +368,21 @@ exports.getYourFeeds = async (req, res) => {
         })
       })
 
+      let data = []
+      await Promise.all(yourFeedData.map(async (item) => {
+        let obj = JSON.parse(JSON.stringify(item));
+        obj.yourEmotion = ""
+        
+      pos =  item.emotions.map(function (e) { return e.userId; }).indexOf(ObjectId(userId));
+      console.log("pos : " + pos);
+      if(pos > -1){
+        obj.yourEmotion = item.emotions[pos].emotion;
+      }
+      data.push(obj);
+      // homeFeedData[i] = obj;
+      
+      }));
+
     let totalPages = yourFeedsCount / perPage;
     totalPages = Math.ceil(totalPages);
     var hasNextPage = page < totalPages;
@@ -378,7 +393,8 @@ exports.getYourFeeds = async (req, res) => {
       // imageBase: feedsConfig.imageBase,
       // videoBase: feedsConfig.videoBase,
       // audioBase: feedsConfig.audioBase,
-      items: yourFeedData,
+      items: data,
+      // items: yourFeedData,
       count: yourFeedsCount,
       totalPages,
       hasNextPage,
@@ -437,6 +453,7 @@ exports.getHomeFeeds = async (req, res) => {
         select: '_id fullName profession image'
       }
       )
+      
       .limit(perPage)
       .skip(offset)
       .sort({
@@ -463,6 +480,21 @@ exports.getHomeFeeds = async (req, res) => {
           error: error
         })
       })
+      let data = []
+      await Promise.all(homeFeedData.map(async (item) => {
+        let obj = JSON.parse(JSON.stringify(item));
+        obj.yourEmotion = ""
+        
+      pos =  item.emotions.map(function (e) { return e.userId; }).indexOf(ObjectId(userId));
+      console.log("pos : " + pos);
+      if(pos > -1){
+        obj.yourEmotion = item.emotions[pos].emotion;
+      }
+      data.push(obj);
+      // homeFeedData[i] = obj;
+      i = i + 1;
+      
+      }));
 
     let totalPages = homeFeedsCount / perPage;
     totalPages = Math.ceil(totalPages);
@@ -475,7 +507,8 @@ exports.getHomeFeeds = async (req, res) => {
       // imageBase: feedsConfig.imageBase,
       // videoBase: feedsConfig.videoBase,
       // audioBase: feedsConfig.audioBase,
-      items: homeFeedData,
+      // items: homeFeedData,
+      items: data,
       count: homeFeedsCount,
       totalPages,
       hasNextPage,
