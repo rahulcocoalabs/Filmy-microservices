@@ -380,7 +380,7 @@ exports.getYourFeeds = async (req, res) => {
       }
       data.push(obj);
       // homeFeedData[i] = obj;
-      
+     
       }));
 
     let totalPages = yourFeedsCount / perPage;
@@ -1459,27 +1459,27 @@ exports.deleteFeedsAlbum = async (req, res) => {
   if (!type || !feedId || !fileName) {
     //validating request
     var errors = [];
-    if (!params.type) {
+    if (!type) {
       errors.push({
         field: "type",
         message: "type cannot be empty"
       });
     }
-    if (!params.feedId) {
+    if (!feedId) {
       errors.push({
         field: "feedId",
         message: "feedId cannot be empty"
       });
     }
-    if (params.fileName) {
+    if (!fileName) {
       errors.push({
         field: "fileName",
         message: "fileName cannot be empty"
       });
     }
-    if (params.feedId) {
+    if (feedId) {
       var ObjectId = require('mongoose').Types.ObjectId;
-      var isValidId = ObjectId.isValid(params.feedId);
+      var isValidId = ObjectId.isValid(feedId);
       if (!isValidId) {
         errors.push({
           field: "feedId",
