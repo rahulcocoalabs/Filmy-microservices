@@ -38,12 +38,14 @@ module.exports = (app) => {
    app.get('/feeds',auth,feeds.getYourFeeds);
    app.get('/feeds/home',auth,feeds.getHomeFeeds);
    app.get('/feeds/albums',auth,feeds.getFeedsAlbum);
+   app.delete('/feeds/albums/delete',auth,feeds.deleteFeedsAlbum);
 //    app.delete('/feeds/albums/:id',auth,feeds.deleteFeedsAlbum);
 
    app.post('/feeds/emotion',auth,feeds.addEmotionToFeed);
    app.delete('/feeds/emotion/:id',auth,feeds.removeEmotionFromFeed);
 
    app.post('/feeds/comment',auth,feeds.addComment);
+   app.get('/feeds/comment',auth,feeds.getComments);
    app.patch('/feeds/comment/:id',auth,feeds.updateComment);
    app.delete('/feeds/comment/:id',auth,feeds.deleteComment);
 }

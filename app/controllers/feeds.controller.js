@@ -677,21 +677,21 @@ exports.addComment = async (req, res) => {
           })
         })
 
-        var upsertData = {
-          $inc: {
-            noOfComments: 1,
-          }
-        };
-  
-        await Feed.update({ _id: feedId, status: 1 }, upsertData)
-          .catch((error) => {
-            console.log(error)
-            return res.status(200).send({
-              message: 'Something went wrong while incrementing no of comments count',
-              status: false,
-              error: error
-            })
+      var upsertData = {
+        $inc: {
+          noOfComments: 1,
+        }
+      };
+
+      await Feed.update({ _id: feedId, status: 1 }, upsertData)
+        .catch((error) => {
+          console.log(error)
+          return res.status(200).send({
+            message: 'Something went wrong while incrementing no of comments count',
+            status: false,
+            error: error
           })
+        })
 
       return res.send({
         success: 1,
@@ -1009,7 +1009,7 @@ exports.deleteComment = async (req, res) => {
       type: constants.FEED_COMMENT,
       status: 1
     };
-    if(userId !== authorUserId){
+    if (userId !== authorUserId) {
       filters.userId = userId
     }
     var queryProjection = {
@@ -1027,23 +1027,23 @@ exports.deleteComment = async (req, res) => {
         })
       })
     if (commentData) {
-      if(replyCommentId){
+      if (replyCommentId) {
         var replies = [];
         replies = commentData.replies;
         pos = replies.map(function (e) { return e._id; }).indexOf(replyCommentId);
         if (pos > -1) {
-          if(replies[pos].status === 1){
+          if (replies[pos].status === 1) {
             replies[pos].status = 0;
             replies[pos].tsModifiedAt = Number(moment().unix());
             var updateComment = {};
             updateComment.replies = replies;
-  
+
             await Comments.update({
               _id: commentId,
               type: constants.FEED_COMMENT,
               status: 1
             }, updateComment,
-  
+
             )
               .catch((error) => {
                 console.log(error)
@@ -1054,21 +1054,21 @@ exports.deleteComment = async (req, res) => {
                 })
               })
 
-              var upsertData = {
-                $inc: {
-                  noOfComments: -1,
-                }
-              };
-        
-              await Feed.update({ _id: feedId, status: 1 }, upsertData)
-                .catch((error) => {
-                  console.log(error)
-                  return res.status(200).send({
-                    message: 'Something went wrong while incrementing no of comments count',
-                    status: false,
-                    error: error
-                  })
+            var upsertData = {
+              $inc: {
+                noOfComments: -1,
+              }
+            };
+
+            await Feed.update({ _id: feedId, status: 1 }, upsertData)
+              .catch((error) => {
+                console.log(error)
+                return res.status(200).send({
+                  message: 'Something went wrong while incrementing no of comments count',
+                  status: false,
+                  error: error
                 })
+              })
 
 
             return res.send({
@@ -1076,9 +1076,9 @@ exports.deleteComment = async (req, res) => {
               statusCode: 200,
               message: 'Reply comment deleted successfully'
             })
-  
-            
-          }else{
+
+
+          } else {
             return res.send({
               success: 0,
               statusCode: 400,
@@ -1092,7 +1092,7 @@ exports.deleteComment = async (req, res) => {
             message: 'Reply comment not exists'
           })
         }
-      }else{
+      } else {
 
         var updateComment = {};
         updateComment.status = 0;
@@ -1112,17 +1112,17 @@ exports.deleteComment = async (req, res) => {
               error: error
             })
           })
-         let commentsIds = feedData.commentsIds;
-         pos = commentsIds.map(function (id) { return id; }).indexOf(commentId);
-         if (pos > -1) {
-           commentsIds.splice(pos,1);
+        let commentsIds = feedData.commentsIds;
+        pos = commentsIds.map(function (id) { return id; }).indexOf(commentId);
+        if (pos > -1) {
+          commentsIds.splice(pos, 1);
           var updateData = {
             $inc: {
               noOfComments: -1,
             },
             commentsIds
           };
-    
+
           await Feed.update({ _id: feedId, status: 1 }, updateData)
             .catch((error) => {
               console.log(error)
@@ -1132,20 +1132,20 @@ exports.deleteComment = async (req, res) => {
                 error: error
               })
             })
-            return res.send({
-              success: 1,
-              statusCode: 200,
-              message: 'Comment deleted successfully'
-            })
-          }else{
-            return res.send({
-              success: 1,
-              statusCode: 200,
-              message: 'Comment already deleted successfully'
-            })
-          }
+          return res.send({
+            success: 1,
+            statusCode: 200,
+            message: 'Comment deleted successfully'
+          })
+        } else {
+          return res.send({
+            success: 1,
+            statusCode: 200,
+            message: 'Comment already deleted successfully'
+          })
+        }
 
-    
+
 
 
 
@@ -1167,20 +1167,113 @@ exports.deleteComment = async (req, res) => {
   }
 }
 
-// exports.getComment = (req, res) => {
-//   var postId = req.params.postId;
-//   var findCriteria = {
-//     postId: postId
-//   };
-//   Comments.find(findCriteria).then(comments => {
-//     res.send({
-//       success: 1,
-//       statusCode: 200,
-//       items: comments,
-//       message: 'Comments listed successfully'
-//     })
-//   })
-// };
+exports.getComments = async (req, res) => {
+  var userData = req.user;
+  var userId = userData.id;
+  var feedId = req.body.feedId;
+
+  var isValidFeedId = ObjectId.isValid(feedId);
+
+  if (!isValidFeedId) {
+    var errors = [];
+
+    if (!isValidFeedId) {
+      errors.push({
+        field: "feedId",
+        message: 'Invalid feedId'
+
+      });
+    }
+
+    return res.send({
+      success: 0,
+      statusCode: 400,
+      errors: errors,
+    });
+  }
+
+  var filters = {
+    _id: feedId,
+    status: 1,
+
+  };
+  var queryProjection = {
+    commentsIds: 1,
+    userId,
+    _id: 1
+  }
+  let feedData = await Feed.findOne(filters, queryProjection)
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while getting feeds data',
+        status: false,
+        error: error
+      })
+    })
+  if (feedData) {
+    var filters = {};
+    let authorUserId = feedData.userId;
+    filters = {
+      feedId: feedId,
+      // userId,
+      type: constants.FEED_COMMENT,
+      status: 1
+    };
+
+    var queryProjection = {
+      comment: 1,
+      replies: 1,
+      _id: 1
+    }
+    let commentData = await Comments.findOne(filters, queryProjection)
+      .populate({
+        path: 'replies.userId',
+
+        select: '_id fullName profession image'
+
+      }
+      )
+      .catch((error) => {
+        console.log(error)
+        return res.status(200).send({
+          message: 'Something went wrong while getting feeds data',
+          status: false,
+          error: error
+        })
+      })
+
+
+    // let commentData = await Comments.aggregate([
+    //   { $match: { feedId: ObjectId(feedId),type : constants.FEED_COMMENT, status: 1 } },
+    //   { $unwind: "$replies" },
+    //   {$match : { "replies.status" : 1}},
+    //   { $group: {_id: '$_id', replies: {$push: '$replies'}}},
+    //   {$project:{
+    //     _id : '$_id',
+    //     comment : 1,
+    //     replies : '$replies'
+    //   } }
+
+    // ])
+    //         .catch((error) => {
+    //       console.log(error)
+    //       return res.status(200).send({
+    //         message: 'Something went wrong while getting feeds data',
+    //         status: false,
+    //         error: error
+    //       })
+    //     })
+
+    if (commentData) {
+      return res.send({
+        commentData
+      })
+    }
+  } else {
+
+  }
+};
 // }
 
 // module.exports = feedsController;
@@ -1324,99 +1417,256 @@ exports.getFeedsAlbum = async (req, res) => {
 
 
 
-// exports.deleteFeedsAlbum = async (req, res) => {
-//   var userData = req.user;
-//   var userId = userData.id;
-//   var feedId = req.params.id;
-//   var type = req.body.type;
-//   var deleteData = req.body.deleteData;
-//   if(type === constants.ALBUM_IMAGE){
-//   // var type = 
-//   await Promise.all(deleteData.map(async (item) => {
-//     let feedData = await Feed.find({
-//       _id: item.feedId,
-//       userId,
-//       status: 1
-//     })
-//       .catch((error) => {
-//         console.log(error)
-//         return res.status(200).send({
-//           message: 'Something went wrong while getting feed',
-//           status: false,
-//           error: error
-//         })
-//       })
+exports.deleteFeedsAlbum = async (req, res) => {
+  var userData = req.user;
+  var userId = userData.id;
+  var feedId = req.body.feedId;
+  var type = req.body.type;
+  var fileName = req.body.fileName;
+  if (!type || !feedId || !fileName) {
+    //validating request
+    var errors = [];
+    if (!params.type) {
+      errors.push({
+        field: "type",
+        message: "type cannot be empty"
+      });
+    }
+    if (!params.feedId) {
+      errors.push({
+        field: "feedId",
+        message: "feedId cannot be empty"
+      });
+    }
+    if (params.fileName) {
+      errors.push({
+        field: "fileName",
+        message: "fileName cannot be empty"
+      });
+    }
+    if (params.feedId) {
+      var ObjectId = require('mongoose').Types.ObjectId;
+      var isValidId = ObjectId.isValid(params.feedId);
+      if (!isValidId) {
+        errors.push({
+          field: "feedId",
+          message: "feedId is invalid"
+        })
+      }
+    }
+    if (errors.length) {
+      res.send({
+        success: 0,
+        status: 400,
+        errors: errors
+      });
+      return;
+    }
+  }
+  let feedData = await Feed.findOne({
+    _id: feedId,
+    userId,
+    status: 1
+  })
+    .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+        message: 'Something went wrong while getting feed',
+        status: false,
+        error: error
+      })
+    })
+  if (feedData) {
+    let images = feedData.images;
+    let audios = feedData.audios;
+    let videos = feedData.videos;
+    let content = feedData.content.trim();
+    var deleteFeedCount = 0;
+    if (type === constants.ALBUM_IMAGE) {
 
-//   if (feedData) {image
-//       // if()
-//       // let updateData = await Feed.update({_id : item.fee)
 
-//   }
+      pos = images.map(function (e) { return e.fileName; }).indexOf(fileName);
+      if (pos > -1) {
+        images.splice(pos, 1);
 
-//   }));
-//   }
-//   let feedData = await Feed.find({
-//     _id: feedId,
-//     userId,
-//     status: 1
-//   })
-//     .catch((error) => {
-//       console.log(error)
-//       return res.status(200).send({
-//         message: 'Something went wrong while getting feed',
-//         status: false,
-//         error: error
-//       })
-//     })
+        let updateData = {
+          images
+        }
+        if (images.length === 0 && audios.length === 0 && videos.length === 0 && content === "") {
+          updateData.status = 0;
+          deleteFeedCount = -1;
+        }
+        updateData.tsModifiedAt = moment().unix();
 
-//   if (feedData.length > 0) {
 
-//     let updateData = await Feed.update({ _id: feedId }, {
-//         status : 0
-//     })
-//     .catch((error) => {
-//       console.log(error)
-//       return res.status(200).send({
-//         message: 'Something went wrong while deleting a feed',
-//         status: false,
-//         error: error
-//       })
-//     })
+        await Feed.update({ _id: feedId }, updateData)
+          .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+              message: 'Something went wrong while deleting image',
+              status: false,
+              error: error
+            })
+          })
 
-//   //update post count
+        var upsertData = {
+          $inc: {
+            noOfFeeds: deleteFeedCount,
+            noOfImages: -1,
+          }
+        };
 
-//   var upsertData = {
-//     $inc: {
-//       noOfFeeds: -1,
-//       noOfImages: (feedData.images.length * -1),
-//       noOfVideos: (feedData.videos.length * -1),
-//       noOfAudios:  (feedData.audios.length * -1),
-//     }
-//   };
+        await User.update({ _id: userId }, upsertData)
+          .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+              message: 'Something went wrong while updating image count',
+              status: false,
+              error: error
+            })
+          })
 
-// await User.update({_id: userId}, upsertData)
-// .catch((error) => {
-// console.log(error)
-// return res.status(200).send({
-//   message: 'Something went wrong while incrementing no of feed',
-//   status: false,
-//   error: error
-// })
-// })
+        return res.send({
+          success: 1,
+          statusCode: 200,
+          message: 'Image deleted successfully'
+        })
 
-//    return res.send({
-//       success: 1,
-//       statusCode: 200,
-//       message: 'You have deleted a feed successfully'
-//     })
-//   }else{
-//     return res.send({
-//       success: 0,
-//       statusCode: 400,
-//       message: 'Invalid feed'
-//     })
-//   }
-// }
+      } else {
+        return res.send({
+          success: 0,
+          statusCode: 400,
+          message: 'Image already deleted'
+        })
+      }
+    } else if (type === constants.ALBUM_VIDEO) {
+      pos = videos.map(function (e) { return e.fileName; }).indexOf(fileName);
+      if (pos > -1) {
+        videos.splice(pos, 1);
+
+        let updateData = {
+          videos
+        }
+        if (images.length === 0 && audios.length === 0 && videos.length === 0 && content === "") {
+          updateData.status = 0;
+          deleteFeedCount = -1;
+        }
+        updateData.tsModifiedAt = moment().unix();
+
+
+        await Feed.update({ _id: feedId }, updateData)
+          .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+              message: 'Something went wrong while deleting video',
+              status: false,
+              error: error
+            })
+          })
+
+        var upsertData = {
+          $inc: {
+            noOfFeeds: deleteFeedCount,
+            noOfVideos: -1,
+          }
+        };
+
+        await User.update({ _id: userId }, upsertData)
+          .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+              message: 'Something went wrong while updating video count',
+              status: false,
+              error: error
+            })
+          })
+
+        return res.send({
+          success: 1,
+          statusCode: 200,
+          message: 'Video deleted successfully'
+        })
+
+      } else {
+        return res.send({
+          success: 0,
+          statusCode: 400,
+          message: 'Video already deleted'
+        })
+      }
+
+
+
+    } else if (type === constants.ALBUM_AUDIO) {
+      pos = audios.map(function (e) { return e.fileName; }).indexOf(fileName);
+      if (pos > -1) {
+        audios.splice(pos, 1);
+
+        let updateData = {
+          audios
+        }
+        if (images.length === 0 && audios.length === 0 && videos.length === 0 && content === "") {
+          updateData.status = 0;
+          deleteFeedCount = -1;
+        }
+        updateData.tsModifiedAt = moment().unix();
+
+
+        await Feed.update({ _id: feedId }, updateData)
+          .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+              message: 'Something went wrong while deleting audio',
+              status: false,
+              error: error
+            })
+          })
+
+        var upsertData = {
+          $inc: {
+            noOfFeeds: deleteFeedCount,
+            noOfAudios: -1,
+          }
+        };
+
+        await User.update({ _id: userId }, upsertData)
+          .catch((error) => {
+            console.log(error)
+            return res.status(200).send({
+              message: 'Something went wrong while updating audio count',
+              status: false,
+              error: error
+            })
+          })
+
+        return res.send({
+          success: 1,
+          statusCode: 200,
+          message: 'Audio deleted successfully'
+        })
+
+      } else {
+        return res.send({
+          success: 0,
+          statusCode: 400,
+          message: 'Video already deleted'
+        })
+      }
+    } else {
+      return res.send({
+        success: 0,
+        statusCode: 400,
+        message: 'Invalid type'
+      })
+    }
+  } else {
+    return res.send({
+      success: 0,
+      statusCode: 400,
+      message: 'Invalid feed'
+    })
+  }
+}
 
 
 
