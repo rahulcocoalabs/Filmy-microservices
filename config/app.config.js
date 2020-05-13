@@ -60,8 +60,14 @@ module.exports = {
     maxImagesCount: 10,
     maxVideosCount: 10,
     maxAudiosCount: 10,
-    emotionsList: ["like","love", "happy", "heartfilled", "surprise", "sad", "angry"]
+    emotionsList: ["like","love", "happy", "heartfilled", "surprise", "sad", "angry"],
 
 },
+autocomplete : {
+limit : 6
+},
+users : {
+  resultsPerPage: 30
 
+}
 }

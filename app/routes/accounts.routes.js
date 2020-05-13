@@ -12,6 +12,13 @@ module.exports = (app) => {
   app.get('/accounts/profile',auth,accounts.getProfile);
   app.patch('/accounts/update-profile',auth,accounts.updateProfile);
   app.post('/accounts/contact-us',accounts.contactUs);
+
+  app.get('/accounts/users/auto-complete',auth,accounts.listAutoComplete);
+  app.get('/accounts/users/search',auth,accounts.listUsers);
+  app.get('/accounts/users/profile/:id',auth,accounts.getUserProfile);
+  
+
+
 }
 
 

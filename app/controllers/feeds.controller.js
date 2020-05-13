@@ -469,9 +469,6 @@ exports.getHomeFeeds = async (req, res) => {
       })
 
     let homeFeedsCount = await Feed.count(findCriteria)
-      .sort({
-        'tsCreatedAt': -1
-      })
       .catch((error) => {
         console.log(error)
         return res.status(200).send({

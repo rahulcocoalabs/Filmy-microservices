@@ -10,6 +10,9 @@
   const sgMail = require('@sendgrid/mail');
   var SENDGRID_APY_KEY = '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';
   var feedsConfig = config.feeds;
+  var usersConfig = config.users;
+  var autocompleteConfig = config.autocomplete;
+  var ObjectId = require('mongoose').Types.ObjectId;
 
   var bcrypt = require('bcryptjs');
   const salt = bcrypt.genSaltSync(10);
@@ -647,6 +650,221 @@
 
     })
   }
+
+  exports.listAutoComplete = async (req,res) =>{
+    let userData = req.user;
+    let userId = userData.id;
+    let search = req.query.search;
+    var queryProjection = {
+      fullName: 1,
+      profession: 1,
+      image : 1,
+      followers : 1
+    }
+    if(!search){
+     let error =  {
+        field: "search",
+        message: "Please provide search text"
+      }
+      res.send({
+        success: 0,
+        status: 400,
+        errors: error
+      });
+      return;
+    }
+    var condition  = {
+      fullName: { $regex: '.*' + search + '.*' } ,
+      status : 1
+    };
+    let data = await Users.find(condition,queryProjection)
+    .limit(autocompleteConfig.limit)
+    .catch((error) => {
+        console.log(error)
+        return res.status(200).send({
+            message: 'Something went wrong while retrieving users',
+            status: false,
+            error: error
+        })
+    })
+    let responseObj = {
+        status : 1,
+        users : data
+    }
+   return res.send(responseObj);
+
+}
+
+exports.listUsers = async (req,res) => {
+  var usersData = req.user;
+  var yourId = usersData.id;
+
+  var params = req.query;
+  var page = params.page || 1;
+  page = page > 0 ? page : 1;
+  var perPage = Number(params.perPage) || usersConfig.resultsPerPage;
+  perPage = perPage > 0 ? perPage : usersConfig.resultsPerPage;
+  var offset = (page - 1) * perPage;
+
+  let search = req.query.search;
+  var queryProjection = {
+    fullName: 1,
+    profession: 1,
+    image : 1,
+    followers : 1
+  }
+  // if(!search){
+  //  let error =  {
+  //     field: "search",
+  //     message: "Please provide search text"
+  //   }
+  //   res.send({
+  //     success: 0,
+  //     status: 400,
+  //     errors: error
+  //   });
+  //   return;
+  // }
+  var findCriteria  = {
+     _id: { "$ne": yourId },
+    status : 1
+  };
+  if(search){
+    findCriteria.fullName = {
+      $regex: '.*' + search + '.*' 
+    }
+  }
+  let userData = await Users.find(findCriteria,queryProjection)
+  .limit(perPage)
+  .skip(offset)
+  .catch((error) => {
+      console.log(error)
+      return res.status(200).send({
+          message: 'Something went wrong while retrieving users',
+          status: false,
+          error: error
+      })
+  })
+
+  let totalCount = await Users.count(findCriteria)
+  .catch((error) => {
+    console.log(error)
+    return res.status(200).send({
+      message: 'Something went wrong while getting your feed count',
+      status: false,
+      error: error
+    })
+  })
+  var data = []
+  if(userData){
+    await Promise.all(userData.map(async (item) => {
+    
+    var userObj = JSON.parse(JSON.stringify(item));
+    if(item.followers && item.followers.length > 0){
+    let optionObj = await item.followers.find(id => (id + "") === (yourId.trim() + ""));
+    
+    if(optionObj){
+      userObj.isFollow = true;
+    }else{
+      userObj.isFollow = false;
+    }
+    }else{
+      userObj.isFollow = false;
+    
+    }
+    data.push(userObj);
+  }));
+  }else{
+    data = userData;
+  }
+
+  let totalPages = totalCount / perPage;
+  totalPages = Math.ceil(totalPages);
+  var hasNextPage = page < totalPages;
+
+  return res.send({
+    success: 1,
+    statusCode: 200,
+    message: 'Users listed successfully',
+    // imageBase: feedsConfig.imageBase,
+    // videoBase: feedsConfig.videoBase,
+    // audioBase: feedsConfig.audioBase,
+    // items: homeFeedData,
+    items: data,
+    count: totalCount,
+    totalPages,
+    hasNextPage,
+  })
+
+}
+
+ // **** Get profile **** Author: Shefin S
+ exports.getUserProfile = async (req, res) => {
+  var userDatas = req.user;
+  var yourId = userDatas.id;
+  var userId = req.params.id
+  var findCriteria = {
+    _id: userId
+  };
+  var queryProjection = {
+    fullName: 1,
+    gender: 1,
+    phone: 1,
+    image: 1,
+    profession: 1,
+    country: 1,
+    city: 1,
+    email: 1,
+    followers: 1,
+    location: 1,
+    bio: 1,
+    dateOfBirth: 1,
+    height: 1,
+    weight: 1,
+    skills: 1,
+    languagesKnown: 1,
+    tagLine: 1,
+  };
+ let userData = await Users.findOne(findCriteria, queryProjection)   
+ .catch((error) => {
+  console.log(error)
+  return res.status(200).send({
+      message: 'Something went wrong while retrieving user profile',
+      status: false,
+      error: error
+  })
+})
+if(userData){
+var userObj = JSON.parse(JSON.stringify(userData));
+if(userData.followers && userData.followers.length > 0){
+let optionObj = await userData.followers.find(id => (id + "") === (yourId.trim() + ""));
+
+if(optionObj){
+  userObj.isFollow = true;
+}else{
+  userObj.isFollow = false;
+}
+}else{
+  userObj.isFollow = false;
+
+}
+
+  res.send({
+      success: 1,
+      statusCode: 200,
+      user: userObj,
+      message: 'User data fetched successfully'
+    })
+  }else{
+    return res.send({
+      success: 0,
+      statusCode: 400,
+      message: 'Invalid user'
+    })
+  }
+}
+
+
 // }
 
 // module.exports = accountsController
