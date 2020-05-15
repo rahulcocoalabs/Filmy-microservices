@@ -489,7 +489,6 @@ exports.getHomeFeeds = async (req, res) => {
       }
       data.push(obj);
       // homeFeedData[i] = obj;
-      i = i + 1;
       
       }));
 
