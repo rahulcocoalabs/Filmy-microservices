@@ -15,8 +15,8 @@ module.exports = {
     url: "http://localhost:8000"
   },
   profile: {
-    imageBase: commonPath + 'common/uploads/profile/',
-       imageUploadPath: 'common/uploads/profile/',
+    imageBase: commonPath + 'common/uploads/profile/images/',
+       imageUploadPath: 'common/uploads/profile/images/',
       // audioUploadPath: '/var/www/html/filmy/common/uploads/profiles/',
 
 
