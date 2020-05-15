@@ -15,7 +15,11 @@ module.exports = {
     url: "http://localhost:8000"
   },
   profile: {
-    imageBase: commonStorePath + 'profile/'
+    imageBase: commonPath + 'common/uploads/profile/',
+       imageUploadPath: 'common/uploads/profile/',
+      // audioUploadPath: '/var/www/html/filmy/common/uploads/profiles/',
+
+
   },
   otp: {
     expirySeconds: 2 * 60

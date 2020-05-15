@@ -497,8 +497,8 @@
 
   // **** Update Profile ***** Author: Shefin S
  exports.updateProfile = (req, res) => {
-    var userData = req.identity.data;
-    var userId = userData.id;
+  let userData = req.user;
+  let userId = userData.id;
     var firstName = req.body.firstName;
     var lastName = req.body.lastName;
     var dateOfBirth = req.body.dateOfBirth;
@@ -511,7 +511,9 @@
     var skills = req.body.skills;
     var bio = req.body.bio;
     var tagLine = req.body.tagLine;
-    if (!firstName && !lastName && !dateOfBirth && !gender && !profession && !phone && !city && !country && !languagesKnown && !skills && !bio && !tagLine) {
+    var profileImage = req.file;
+
+    if (!firstName && !lastName && !dateOfBirth && !gender && !profession && !phone && !city && !country && !languagesKnown && !skills && !bio && !tagLine &&!profileImage) {
       return res.send({
         success: 0,
         statusCode: 204,
@@ -557,6 +559,9 @@
     };
     if (tagLine) {
       update.tagLine = tagLine
+    };
+    if (profileImage) {
+      update.image = profileImage.filename
     };
     var filter = {
       _id: userId,
