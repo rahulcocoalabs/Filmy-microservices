@@ -674,7 +674,7 @@
       return;
     }
     var condition  = {
-      fullName: { $regex: '.*' + search + '.*' } ,
+      fullName: { $regex: new RegExp(search, "i") } ,
       status : 1
     };
     let data = await Users.find(condition,queryProjection)
@@ -730,9 +730,8 @@ exports.listUsers = async (req,res) => {
     status : 1
   };
   if(search){
-    findCriteria.fullName = {
-      $regex: '.*' + search + '.*' 
-    }
+    findCriteria.fullName = { $regex: new RegExp(search, "i") } 
+
   }
   let userData = await Users.find(findCriteria,queryProjection)
   .limit(perPage)

@@ -186,7 +186,7 @@
         .populate({ 
             path  : 'followings',
             match : {
-                fullName: { $regex: search }
+      fullName: { $regex: new RegExp(search, "i") } 
             },
             select : '_id fullName profession image'
                       
@@ -212,7 +212,7 @@
         .populate({ 
             path  : 'followers',
             match : {
-                fullName: { $regex: search }
+                fullName: { $regex: new RegExp(search, "i") } 
             },
             select : '_id fullName profession image'
             // options: { sort: { fullName: 1 }
