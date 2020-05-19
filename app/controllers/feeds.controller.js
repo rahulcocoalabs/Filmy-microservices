@@ -168,13 +168,14 @@ exports.updateFeed = async (req, res) => {
         error: error
       })
     })
-  var oldVideosData = feedData.videos;
-  var oldImagesData = feedData.images;
-  var oldAudiosData = feedData.audios;
+
   console.log("feedData")
   console.log(feedData.videos)
   console.log("feedData")
   if (feedData) {
+    var oldVideosData = feedData.videos;
+    var oldImagesData = feedData.images;
+    var oldAudiosData = feedData.audios;
     // console.log(feedData.userId , typeof feedData.userId)
     // console.log(userId , typeof userId)
     if (JSON.stringify(feedData.userId) === JSON.stringify(userId)) {
@@ -538,6 +539,8 @@ exports.deleteFeed = async (req, res) => {
     })
 
   if (feedData) {
+    if (JSON.stringify(feedData.userId) === JSON.stringify(userId)) {
+
     let updateData = await Feed.update({ _id: feedId }, {
       status: 0
     })
@@ -587,6 +590,13 @@ exports.deleteFeed = async (req, res) => {
       statusCode: 200,
       message: 'You have deleted a feed successfully'
     })
+  }else{
+    return res.send({
+      success: 0,
+      statusCode: 400,
+      message: 'Its not your feed'
+    })
+  }
   } else {
     return res.send({
       success: 0,

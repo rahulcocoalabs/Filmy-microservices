@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const ArticleSchema = mongoose.Schema({
     title: String,
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
-    description: String,
+    content: String,
     image: String,
-    approvedStatus: String,
-    approvedBy: String,
-    approvedAt: Number,
+    // approvedStatus: String,
+    // approvedBy: String,
+    // approvedAt: Number,
     status: Number,
     tsCreatedAt: Number,
     tsModifiedAt: Number

@@ -48,7 +48,7 @@ module.exports = {
   // },
   feeds: {
     resultsPerPage: 30,
-    imageUploadPath: relativeCommonPath + "feeds/images",
+    // imageUploadPath: relativeCommonPath + "feeds/images",
     imageUploadPath: '/var/www/html/filmy/common/uploads/feeds/images/',
     videoUploadPath: '/var/www/html/filmy/common/uploads/feeds/videos/',
     audioUploadPath: '/var/www/html/filmy/common/uploads/feeds/audios/',
@@ -73,5 +73,11 @@ limit : 6
 users : {
   resultsPerPage: 30
 
+},
+articles: {
+  imageBase: commonPath + 'common/uploads/article/images/',
+  imageUploadPath: '/var/www/html/filmy/common/uploads/article/images/',
+
+  // imageUploadPath: 'common/uploads/article/images/',
 }
 }
