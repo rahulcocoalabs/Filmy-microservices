@@ -75,9 +75,13 @@ users : {
 
 },
 articles: {
+  resultsPerPage: 30,
+
   imageBase: commonPath + 'common/uploads/article/images/',
   imageUploadPath: '/var/www/html/filmy/common/uploads/article/images/',
 
   // imageUploadPath: 'common/uploads/article/images/',
+  emotionsList: ["like","love", "happy", "heartfilled", "surprise", "sad", "angry"]
+
 }
 }

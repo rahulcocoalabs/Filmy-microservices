@@ -885,7 +885,7 @@ exports.updateComment = async (req, res) => {
       .catch((error) => {
         console.log(error)
         return res.status(200).send({
-          message: 'Something went wrong while getting feeds data',
+          message: 'Something went wrong while getting comments data',
           status: false,
           error: error
         })

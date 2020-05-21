@@ -24,18 +24,19 @@ module.exports = (app) => {
    app.delete('/articles/:id',auth,articles.deleteArticle);
 // //    app.get('/feeds/:id',auth,articles.getFeed);
    app.get('/articles',auth,articles.getYourArticles);
-//    app.get('/articles/home',auth,articles.getHomeArticles);
+   app.get('/articles/home',auth,articles.getHomeArticles);
 //    app.get('/feeds/albums',auth,articles.getFeedsAlbum);
 //    app.delete('/feeds/albums/delete',auth,articles.deleteFeedsAlbum);
 // //    app.delete('/feeds/albums/:id',auth,articles.deleteFeedsAlbum);
 
 
 
-//    app.post('/feeds/emotion',auth,articles.addEmotionToFeed);
+   app.post('/articles/emotion',auth,articles.addEmotionToArticle);
+
 //    app.delete('/feeds/emotion/:id',auth,articles.removeEmotionFromFeed);
 
-//    app.post('/feeds/comment',auth,articles.addComment);
+   app.post('/articles/comment',auth,articles.addComment);
 //    app.get('/feeds/comment',auth,articles.getComments);
-//    app.patch('/feeds/comment/:id',auth,articles.updateComment);
+   app.patch('/articles/comment/:id',auth,articles.updateComment);
 //    app.delete('/feeds/comment/:id',auth,articles.deleteComment);
 }

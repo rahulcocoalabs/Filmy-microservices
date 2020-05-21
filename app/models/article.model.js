@@ -8,6 +8,13 @@ const ArticleSchema = mongoose.Schema({
     // approvedStatus: String,
     // approvedBy: String,
     // approvedAt: Number,
+    emotions: [{
+        emotion: String,
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    }],
+    commentsIds: Array,
+    noOfComments : Number,
+    noOfLikes : Number,
     status: Number,
     tsCreatedAt: Number,
     tsModifiedAt: Number
